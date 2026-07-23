@@ -4,6 +4,7 @@ import {
   answerLiveFilters,
   recommendLiveFilters,
   ReqableLiveClient,
+  searchLiveFilters,
 } from '../src/providers/reqable-live.js';
 
 function jsonResponse(value, status = 200) {
@@ -61,6 +62,7 @@ test('Reqable live client waits for a new ADB JSON response', async () => {
 test('live filters target the mobile recommendation and requested answer', () => {
   assert.equal(recommendLiveFilters()[0].hosts[0], 'api.zhihu.com');
   assert.match(answerLiveFilters('123')[1].pattern, /123/);
+  assert.match(searchLiveFilters()[1].pattern, /search_v3/);
 });
 
 test('Reqable live URL is restricted to loopback HTTP', () => {

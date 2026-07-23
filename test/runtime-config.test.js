@@ -6,6 +6,7 @@ import {
   runtimeConfig,
   validateLimit,
   validateMaxContent,
+  validateQuery,
   validateWaitSeconds,
 } from '../src/runtime/config.js';
 
@@ -61,4 +62,10 @@ test('answer target keeps long IDs as strings', () => {
     },
   );
   assert.throws(() => parseAnswerTarget('https://example.com/answer/1'));
+});
+
+test('search query rejects empty and oversized input', () => {
+  assert.equal(validateQuery('  人工智能  '), '人工智能');
+  assert.throws(() => validateQuery('   '), /must not be empty/);
+  assert.throws(() => validateQuery('x'.repeat(101)), /must be <= 100/);
 });

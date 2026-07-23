@@ -1,6 +1,7 @@
 import { ProviderError } from '../errors.js';
 
 export const DEFAULT_REQABLE_URL = 'http://127.0.0.1:9000';
+const REQABLE_REQUEST_TIMEOUT_MS = 15_000;
 
 function delay(milliseconds) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -62,7 +63,7 @@ export class ReqableLiveClient {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(body),
-        signal: AbortSignal.timeout(5_000),
+        signal: AbortSignal.timeout(REQABLE_REQUEST_TIMEOUT_MS),
       });
     } catch (error) {
       throw new ProviderError(
@@ -184,6 +185,18 @@ export function answerLiveFilters(answerId) {
       type: 'keyword',
       pattern: `answers/(?:v2/)?${answerId}(?:[/?#]|$)`,
       regex: true,
+      caseSensitive: false,
+    },
+  ];
+}
+
+export function searchLiveFilters() {
+  return [
+    { type: 'host', hosts: ['api.zhihu.com'] },
+    {
+      type: 'keyword',
+      pattern: '/search_v3',
+      regex: false,
       caseSensitive: false,
     },
   ];

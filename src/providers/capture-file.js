@@ -98,3 +98,19 @@ export function answerPayloadFromCapture(value, answerId) {
   }
   return payload;
 }
+
+export function searchPayloadFromCapture(value) {
+  const records = recordsFrom(value);
+  const record = latestMatching(records, (candidate) => {
+    const url = String(candidate?.url ?? '');
+    return /\/search_v3(?:[?#]|$)/.test(url);
+  }) ?? (records.length === 1 ? records[0] : null);
+  const payload = responsePayload(record);
+  if (!payload || !Array.isArray(payload.data)) {
+    throw new ProviderError(
+      'empty',
+      'No completed search_v3 JSON response was found in the capture file',
+    );
+  }
+  return payload;
+}

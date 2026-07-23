@@ -9,13 +9,16 @@ import {
   answerPayloadFromCapture,
   readCaptureFile,
   recommendPayloadFromCapture,
+  searchPayloadFromCapture,
 } from './capture-file.js';
-import { readAdbAnswer, readAdbRecommend } from './adb-reqable.js';
+import { readAdbAnswer, readAdbRecommend, readAdbSearch } from './adb-reqable.js';
+import { normalizeSearchPayload } from '../normalizers/search.js';
 import { requestGateway } from './remote-gateway.js';
 
 const FIXTURE_FILES = Object.freeze({
   recommend: fileURLToPath(new URL('../../fixtures/reqable/recommend.json', import.meta.url)),
   answer: fileURLToPath(new URL('../../fixtures/reqable/answer.json', import.meta.url)),
+  search: fileURLToPath(new URL('../../fixtures/reqable/search.json', import.meta.url)),
 });
 
 async function captureValue(source, config, fixtureKind) {
@@ -68,4 +71,17 @@ export async function readAnswer(source, config, target, options) {
     return normalized ? [normalized] : [];
   }
   throw new ProviderError('command', `Unsupported answer source: ${source}`);
+}
+
+export async function readSearch(source, config, query, options) {
+  if (source === 'adb') {
+    const payload = await readAdbSearch(config, query, options);
+    return normalizeSearchPayload(payload, { limit: options.limit, source: 'adb' });
+  }
+  if (source === 'capture' || source === 'fixture') {
+    const capture = await captureValue(source, config, 'search');
+    const payload = searchPayloadFromCapture(capture);
+    return normalizeSearchPayload(payload, { limit: options.limit, source });
+  }
+  throw new ProviderError('command', `Unsupported search source: ${source}`);
 }

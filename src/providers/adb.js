@@ -187,6 +187,22 @@ export class AdbClient {
       ZHIHU_PACKAGE,
     ]), { timeoutMs: 25_000 });
   }
+
+  async openSearch(query) {
+    const target = new URL('zhihu://search');
+    target.searchParams.set('q', query);
+    await this.run(this.deviceArgs([
+      'shell',
+      'am',
+      'start',
+      '-W',
+      '-a',
+      'android.intent.action.VIEW',
+      '-d',
+      target.toString(),
+      ZHIHU_PACKAGE,
+    ]), { timeoutMs: 25_000 });
+  }
 }
 
 export const adbInternals = Object.freeze({

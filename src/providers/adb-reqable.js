@@ -5,6 +5,7 @@ import {
   answerLiveFilters,
   recommendLiveFilters,
   ReqableLiveClient,
+  searchLiveFilters,
 } from './reqable-live.js';
 
 function dependenciesFor(dependencies, key) {
@@ -63,6 +64,33 @@ export async function readAdbAnswer(
     source: 'adb',
   });
   return normalized ? [normalized] : [];
+}
+
+export async function readAdbSearch(
+  config,
+  query,
+  options,
+  dependencies = {},
+) {
+  const { adb, reqable } = await mobileClients(config, dependencies);
+  const filters = searchLiveFilters();
+  const seenIds = await reqable.snapshot(filters);
+  await adb.openSearch(query);
+  const { payload } = await reqable.waitForJson({
+    filters,
+    seenIds,
+    timeoutSeconds: options.waitSeconds,
+    label: `search_v3?q=${query}`,
+    acceptRecord: (record) => {
+      try {
+        const url = new URL(record.url);
+        return url.pathname === '/search_v3' && url.searchParams.get('q') === query;
+      } catch {
+        return false;
+      }
+    },
+  });
+  return payload;
 }
 
 export async function probeAdbReqable(config, dependencies = {}) {

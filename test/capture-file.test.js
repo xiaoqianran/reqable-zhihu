@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   answerPayloadFromCapture,
   recommendPayloadFromCapture,
+  searchPayloadFromCapture,
 } from '../src/providers/capture-file.js';
 
 function record(id, url, body, code = 200) {
@@ -42,4 +43,12 @@ test('missing business record is an explicit empty error', () => {
     ]),
     /No completed topstory\/recommend/,
   );
+});
+
+test('search selector chooses the latest search_v3 response', () => {
+  const payload = searchPayloadFromCapture([
+    record(20, 'https://api.zhihu.com/search/suggest?q=AI', { data: [{ id: 'noise' }] }),
+    record(21, 'https://api.zhihu.com/search_v3?q=AI', { data: [{ id: 'result' }] }),
+  ]);
+  assert.equal(payload.data[0].id, 'result');
 });

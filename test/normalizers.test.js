@@ -4,6 +4,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import { normalizeAnswerPayload } from '../src/normalizers/answer.js';
 import { normalizeRecommendPayload } from '../src/normalizers/recommend.js';
+import { normalizeSearchPayload } from '../src/normalizers/search.js';
 import {
   answerPayloadFromCapture,
   recommendPayloadFromCapture,
@@ -61,4 +62,22 @@ test('answer content truncation is explicit', async () => {
     source: 'fixture',
   });
   assert.equal(row.content.length, 10);
+});
+
+test('search results exclude ads and normalize answer, article, and people URLs', async () => {
+  const capture = await fixture('search');
+  const rows = normalizeSearchPayload(capture.response.body.json, {
+    limit: 10,
+    source: 'fixture',
+  });
+  assert.equal(rows.length, 3);
+  assert.deepEqual(rows.map((row) => row.type), ['answer', 'article', 'people']);
+  assert.equal(
+    rows[0].url,
+    'https://www.zhihu.com/question/800000000000000001/answer/900000000000000001',
+  );
+  assert.equal(rows[0].title, '如何学习AI？');
+  assert.equal(rows[0].excerpt, '从基础开始学习 AI。');
+  assert.equal(rows[1].url, 'https://zhuanlan.zhihu.com/p/700000000000000001');
+  assert.equal(rows[2].url, 'https://www.zhihu.com/people/example-user');
 });

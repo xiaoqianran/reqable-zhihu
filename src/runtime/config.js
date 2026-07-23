@@ -73,6 +73,17 @@ export function validateWaitSeconds(value, defaultValue = 20, maxValue = 120) {
   return number;
 }
 
+export function validateQuery(value, maxLength = 100) {
+  const query = String(value ?? '').trim();
+  if (!query) {
+    throw new ProviderError('argument', 'query must not be empty');
+  }
+  if (query.length > maxLength) {
+    throw new ProviderError('argument', `query must be <= ${maxLength} characters`);
+  }
+  return query;
+}
+
 const ANSWER_ID = /^\d+$/;
 const TYPED_ANSWER = /^answer:(\d+):(\d+)$/;
 const ANSWER_PATH = /^\/question\/(\d+)\/answer\/(\d+)\/?$/;

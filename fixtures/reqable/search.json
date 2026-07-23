@@ -1,0 +1,76 @@
+{
+  "id": 9003,
+  "url": "https://api.zhihu.com/search_v3?q=AI&t=general&offset=0&limit=20",
+  "request": {
+    "method": "GET"
+  },
+  "response": {
+    "code": 200,
+    "body": {
+      "json": {
+        "data": [
+          {
+            "type": "hot_timing",
+            "object": {
+              "type": "hot_timing",
+              "title": "噪音卡片"
+            }
+          },
+          {
+            "type": "search_result",
+            "object": {
+              "id": "900000000000000001",
+              "type": "answer",
+              "title": "如何学习<em>AI</em>？",
+              "excerpt": "从基础开始学习 <em>AI</em>。",
+              "voteup_count": 128,
+              "comment_count": 12,
+              "question": {
+                "id": "800000000000000001",
+                "title": "如何学习 AI？"
+              },
+              "author": {
+                "name": "示例作者甲"
+              }
+            }
+          },
+          {
+            "type": "knowledge_ad",
+            "object": {
+              "url": "https://www.zhihu.com/pub/book/example"
+            }
+          },
+          {
+            "type": "search_result",
+            "object": {
+              "id": "700000000000000001",
+              "type": "article",
+              "title": "<em>AI</em> 工程实践",
+              "excerpt": "一篇脱敏的专栏示例。",
+              "voteup_count": 64,
+              "comment_count": 5,
+              "author": {
+                "name": "示例作者乙"
+              }
+            }
+          },
+          {
+            "type": "search_result",
+            "object": {
+              "id": "example-user-id",
+              "url_token": "example-user",
+              "type": "people",
+              "name": "<em>AI</em> 实验室",
+              "headline": "关注人工智能和工程实践",
+              "voteup_count": 256
+            }
+          }
+        ],
+        "paging": {
+          "is_end": false,
+          "next": "https://api.zhihu.com/search_v3?q=AI&offset=20&limit=20"
+        }
+      }
+    }
+  }
+}

@@ -69,3 +69,32 @@ test('ADB client requires an explicit serial when multiple devices are online', 
   );
   await assert.rejects(() => client.resolveDevice(), /pass --adb-serial/);
 });
+
+test('ADB search uses an encoded Zhihu deeplink without keyboard injection', async () => {
+  const calls = [];
+  const client = new AdbClient(
+    { adbPath: 'adb', adbSerial: 'emulator-5554' },
+    {
+      runner: async (_file, args) => {
+        calls.push(args);
+        return { stdout: '' };
+      },
+    },
+  );
+  client.serial = 'emulator-5554';
+  await client.openSearch('人工智能 AI');
+  assert.deepEqual(calls[0], [
+    '-s',
+    'emulator-5554',
+    'shell',
+    'am',
+    'start',
+    '-W',
+    '-a',
+    'android.intent.action.VIEW',
+    '-d',
+    'zhihu://search?q=%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD+AI',
+    'com.zhihu.android',
+  ]);
+  assert.ok(!calls[0].includes('input'));
+});

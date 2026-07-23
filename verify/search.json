@@ -1,0 +1,37 @@
+{
+  "args": [
+    "AI",
+    "--source",
+    "fixture",
+    "--limit",
+    "3"
+  ],
+  "expect": {
+    "rowCount": {
+      "min": 3,
+      "max": 3
+    },
+    "columns": [
+      "rank",
+      "type",
+      "id",
+      "title",
+      "author",
+      "votes",
+      "comments",
+      "excerpt",
+      "url",
+      "source"
+    ],
+    "patterns": {
+      "type": "^(answer|article|question|people|topic|pin)$",
+      "url": "^https://(www|zhuanlan)\\.zhihu\\.com/",
+      "source": "^fixture$"
+    },
+    "notEmpty": [
+      "id",
+      "title",
+      "url"
+    ]
+  }
+}
