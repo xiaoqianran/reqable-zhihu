@@ -53,6 +53,37 @@ opencli plugin install file://<本仓库绝对路径>
 opencli plugin uninstall reqable-zhihu
 ```
 
+## ADB 本地开发
+
+电脑已连接一台授权的 Android 设备后，可通过 ADB reverse 让手机使用
+`127.0.0.1:17830` 访问电脑网关，无需开放局域网端口。
+
+在第一个 PowerShell 窗口启动网关并保持窗口运行：
+
+```powershell
+cd D:\path\to\reqable-zhihu
+.\scripts\start-adb-gateway.ps1
+```
+
+脚本会生成 `.opencli/gateway-token`（已被 Git 忽略），并自动执行：
+
+```text
+adb reverse tcp:17830 tcp:17830
+```
+
+在第二个 PowerShell 窗口加载相同令牌并验证：
+
+```powershell
+cd D:\path\to\reqable-zhihu
+. .\scripts\use-adb-gateway.ps1
+opencli zhihu-mobile doctor --probe
+opencli zhihu-mobile recommend --source remote --limit 2
+```
+
+注意第一个点号是 PowerShell 的 dot-source，用于把环境变量加载到当前窗口。
+真实知乎命令仍要求电脑 Chrome 已登录知乎，并且 OpenCLI Browser Bridge
+扩展处于连接状态。
+
 使用可信电脑作为执行器：
 
 ```bash
