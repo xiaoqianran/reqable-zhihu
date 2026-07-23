@@ -62,3 +62,15 @@ Capture provider 不发起知乎请求，因此不是签名绕过方案。
 ## 组合读取路径
 
 `recommend-answers` 不引入新的数据策略。它串行复用推荐与回答详情两段 `INTERCEPT`，只把 `type=answer` 的推荐 URL 传入现有 `parseAnswerTarget` / `readAnswer` 契约。专栏和问题卡片不做隐式类型转换；批次没有回答时返回 typed empty error。
+
+## 搜索路径
+
+Strategy: `INTERCEPT`
+
+Contract: `internal-unstable`
+
+- observed request/state: `zhihu://search?q=<query>` 打开 `SearchResultActivity`，随后产生 `GET api.zhihu.com/search_v3?...&q=<query>`。
+- auth source: Android App 自己生成 Bearer、Cookie、动态签名与设备头。
+- replay result: 2026-07-24 使用 `AI` 实测返回 20 个原始卡片，包含非空 `answer/article/people` 业务结果。
+
+公开/Cookie API 无法稳定复用 App 的搜索签名和实验参数；单屏 UI 也无法提供完整结构化字段。实现只接受本次新增且 `q` 与用户输入完全一致的 `search_v3` 响应，并过滤广告、热词等非 `search_result` 卡片。

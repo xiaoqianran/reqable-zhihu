@@ -131,7 +131,32 @@ opencli zhihu-mobile recommend `
 | `--gateway-url` | 空 | `remote` 兼容源地址 |
 | `--capture-file` | 空 | Reqable JSON 导出路径 |
 
-## 5. 获取回答正文
+## 5. 搜索
+
+关键词是 positional 参数，包含空格时需要引号：
+
+```powershell
+opencli zhihu-mobile search "AI"
+opencli zhihu-mobile search "人工智能" --limit 10
+opencli zhihu-mobile search "AI Agent" --limit 20 -f json
+```
+
+搜索结果统一包含 `answer / article / question / people / topic / pin` 等可识别类型，并过滤广告、热词和其他非 `search_result` 卡片。标题和摘要中的 `<em>` 高亮标签会被移除。
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `query` | 必填 | 搜索关键词，最长 100 个字符 |
+| `--source` | `auto` | `auto / adb / capture / fixture` |
+| `--limit` | `20` | 返回 `1-100` 条 |
+| `--wait-seconds` | `20` | 等待 App 响应 `1-120` 秒 |
+| `--adb-path` | `adb` | ADB 可执行文件 |
+| `--adb-serial` | 空 | 多设备时必须指定 |
+| `--reqable-url` | `http://127.0.0.1:9000` | Reqable live API |
+| `--capture-file` | 空 | Reqable JSON 导出路径 |
+
+当前搜索没有 `remote` 数据源：它固定使用真实 Android App，或显式读取 capture/fixture。
+
+## 6. 获取回答正文
 
 `target` 支持三种格式。
 
@@ -187,7 +212,7 @@ opencli zhihu-mobile answer-detail 23109591027 `
 
 `--max-content 0` 表示不截断；最大允许值为 `1000000`。
 
-## 6. 展开推荐中的全部回答
+## 7. 展开推荐中的全部回答
 
 组合命令先获取一批推荐卡片，再把其中每个 `answer` 按推荐顺序交给详情读取：
 
@@ -218,7 +243,7 @@ opencli zhihu-mobile recommend-answers `
 
 操作同一个 Android App 时不能并行打开多个回答，因此该命令严格串行执行。实际耗时随回答数量增加。专栏 `article` 和问题 `question` 不属于 `answer-detail` 的输入，会被明确排除；如果本批没有回答，命令返回 `EMPTY_RESULT`。
 
-## 7. 手动读取推荐中的第一条回答
+## 8. 手动读取推荐中的第一条回答
 
 ```powershell
 $recommendJson = opencli zhihu-mobile recommend --limit 2 -f json
@@ -238,7 +263,7 @@ opencli zhihu-mobile answer-detail $answerId `
 
 日常使用优先选择 `recommend-answers`；下面的 PowerShell 片段适合需要自定义筛选逻辑的脚本。
 
-## 8. 离线 fixture
+## 9. 离线 fixture
 
 fixture 是合成、脱敏数据，只用于开发和离线验证：
 
@@ -256,9 +281,14 @@ opencli zhihu-mobile recommend-answers `
   --source fixture `
   --limit 2 `
   -f json
+
+opencli zhihu-mobile search "AI" `
+  --source fixture `
+  --limit 3 `
+  -f json
 ```
 
-## 9. Reqable 导出文件
+## 10. Reqable 导出文件
 
 读取推荐记录：
 
@@ -279,7 +309,16 @@ opencli zhihu-mobile answer-detail 23109591027 `
   -f json
 ```
 
-## 10. 旧版 Chrome 远程兼容源
+读取搜索记录：
+
+```powershell
+opencli zhihu-mobile search "AI" `
+  --source capture `
+  --capture-file D:\captures\zhihu.json `
+  -f json
+```
+
+## 11. 旧版 Chrome 远程兼容源
 
 在第一个 PowerShell 窗口启动网关：
 
@@ -311,7 +350,7 @@ opencli zhihu-mobile recommend --source remote --limit 10
 `remote` 需要电脑 Chrome、OpenCLI Browser Bridge 和知乎登录态。默认
 `auto/adb` 不需要 Chrome。
 
-## 11. 输出格式
+## 12. 输出格式
 
 所有命令支持：
 
@@ -331,11 +370,12 @@ opencli zhihu-mobile recommend --limit 5 -f table
 opencli zhihu-mobile recommend --limit 5 -f json
 opencli zhihu-mobile answer-detail 23109591027 -f plain
 opencli zhihu-mobile recommend-answers --limit 5 -f json
+opencli zhihu-mobile search "AI" --limit 10 -f json
 ```
 
 Agent 或脚本通常应显式使用 `-f json`。
 
-## 12. Trace 与调试
+## 13. Trace 与调试
 
 ```powershell
 # 详细日志
@@ -354,6 +394,10 @@ opencli zhihu-mobile answer-detail 23109591027 `
 opencli zhihu-mobile recommend-answers --limit 3 `
   --trace retain-on-failure `
   -v
+
+opencli zhihu-mobile search "AI" `
+  --trace retain-on-failure `
+  -v
 ```
 
 Trace 模式：
@@ -364,7 +408,7 @@ Trace 模式：
 | `on` | 始终保存 |
 | `retain-on-failure` | 失败时保存 |
 
-## 13. 环境变量
+## 14. 环境变量
 
 ```powershell
 $env:ZHIHU_MOBILE_SOURCE = "adb"
@@ -380,7 +424,7 @@ $env:ZHIHU_MOBILE_GATEWAY_TOKEN = "<gateway-token>"
 
 命令行参数优先于环境变量。
 
-## 14. 帮助与验证
+## 15. 帮助与验证
 
 ```powershell
 opencli zhihu-mobile --help
@@ -388,11 +432,13 @@ opencli zhihu-mobile doctor --help
 opencli zhihu-mobile recommend --help
 opencli zhihu-mobile answer-detail --help
 opencli zhihu-mobile recommend-answers --help
+opencli zhihu-mobile search --help
 
 opencli validate zhihu-mobile
 opencli verify zhihu-mobile/recommend
 opencli verify zhihu-mobile/answer-detail
 opencli verify zhihu-mobile/recommend-answers
+opencli verify zhihu-mobile/search
 ```
 
 日常最短流程：
@@ -402,4 +448,5 @@ opencli zhihu-mobile doctor --probe
 opencli zhihu-mobile recommend --limit 2
 opencli zhihu-mobile answer-detail 23109591027
 opencli zhihu-mobile recommend-answers --limit 5
+opencli zhihu-mobile search "AI" --limit 10
 ```

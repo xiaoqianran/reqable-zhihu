@@ -22,7 +22,7 @@
                        ▼
 ┌────────────────────────────────────────────┐
 │ OpenCLI plugin command layer               │
-│ recommend / answer-detail / recommend-answers / doctor │
+│ recommend / search / answer-detail / recommend-answers / doctor │
 └──────────────────────┬─────────────────────┘
                        │ normalized provider API
           ┌────────────┼──────────────┬─────────────┐
@@ -68,6 +68,7 @@
 知乎 Web 与 App 的同一业务字段路径不同。Normalizer 将其转换成稳定结构：
 
 - 推荐卡片：`rank/type/title/author/votes/url/source`
+- 搜索结果：`rank/type/id/title/author/votes/comments/excerpt/url/source`
 - 回答正文：`id/author/votes/comments/questionId/questionTitle/url/createdAt/updatedAt/content/source`
 
 所有 ID 保持字符串，避免超过 JavaScript 安全整数范围。

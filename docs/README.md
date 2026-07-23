@@ -20,6 +20,7 @@
 - [域名与基础设施](./protocol/domains.md)
 - [鉴权与公共请求头](./protocol/authentication.md)
 - [信息流协议](./protocol/feed.md)
+- [搜索协议](./protocol/search.md)
 - [内容协议](./protocol/content.md)
 - [用户与任务协议](./protocol/user.md)
 - [基础设施协议](./protocol/infrastructure.md)
