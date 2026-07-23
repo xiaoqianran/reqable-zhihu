@@ -135,6 +135,8 @@ opencli zhihu-mobile recommend `
 
 `target` 支持三种格式。
 
+回答详情默认使用 `plain` 输出，避免把长正文塞进表格或 YAML 块。需要所有字段供脚本处理时使用 `-f json`；需要表格时仍可显式使用 `-f table`。
+
 使用回答 ID：
 
 ```powershell

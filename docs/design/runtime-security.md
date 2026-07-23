@@ -1,5 +1,7 @@
 # 运行时与安全模型
 
+ADB provider 只负责启动或切换到知乎 Activity，不调用 `force-stop`、HOME 键或进程终止命令。读取结束后知乎 App 保持打开；OpenCLI 进程退出不应改变手机前台任务。
+
 ## 执行源
 
 | source | 位置 | 凭证 | 适用阶段 |

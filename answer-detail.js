@@ -19,6 +19,7 @@ cli({
   domain: 'localhost',
   strategy: Strategy.LOCAL,
   browser: false,
+  defaultFormat: 'plain',
   args: [
     {
       name: 'target',
