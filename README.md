@@ -2,213 +2,159 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![OpenCLI Plugin](https://img.shields.io/badge/OpenCLI-plugin-blue)](./opencli-plugin.json)
-[![Status](https://img.shields.io/badge/status-experimental-orange)](./docs/roadmap.md)
+[![Status](https://img.shields.io/badge/status-experimental-orange)](./docs/design/roadmap.md)
 
-`reqable-zhihu` 是一个面向实验和长期演进的 OpenCLI 插件：它通过 ADB 驱动已登录的知乎 Android App，由 Reqable 读取 App 本次产生的响应，再以 OpenCLI 命令输出推荐和正文。
+把已登录的知乎 Android App 变成可从 OpenCLI 调用的只读数据源。
 
-项目仍是非官方、研究向实现。它不会破解验证码或绕过访问控制，也不会把抓到的 Bearer、Cookie、`x-zse-*` 写入仓库。
+插件通过 ADB 触发 App 页面，由知乎 App 自己生成登录态和动态签名；Reqable 捕获本次响应后，插件将推荐和回答正文归一化为稳定的命令行输出。默认链路不使用 Chrome，也不复制 Cookie、Bearer 或 `x-zse-*`。
 
-## 当前能力
+## 当前可用
 
-- OpenCLI 插件命名空间：`zhihu-mobile`
-- 真实 Android 数据源：ADB 驱动知乎 App，Reqable 实时读取响应
-- 默认不需要 Chrome 或 OpenCLI Browser Bridge
-- 远程兼容源：仍可显式使用电脑 OpenCLI/Chrome
-- Reqable 导出读取：从本地脱敏 capture JSON 解析推荐流和回答正文
-- 统一数据模型：Web API 与 Android App API 映射到同一列结构
-- 离线 fixture：不连接知乎即可验证 normalizer 和 CLI 契约
-- 原有协议手册：保留域名、鉴权、推荐流、正文和抓包说明
+| 命令 | 作用 |
+|------|------|
+| `opencli zhihu-mobile doctor --probe` | 检查 ADB、知乎 App 和 Reqable |
+| `opencli zhihu-mobile recommend --limit 2` | 获取真实首页推荐 |
+| `opencli zhihu-mobile answer-detail <回答ID>` | 获取回答正文 |
+
+`search`、`hot` 等命令尚未实现。项目是非官方实验，不保证知乎内部协议长期稳定。
 
 ## 快速开始
 
-要求 Node.js 21+、OpenCLI 1.8.6+。
+需要：
 
-直接从 GitHub 安装：
+- Node.js 21+
+- OpenCLI 1.8.6+
+- 可由 `adb devices` 识别的 Android 设备或模拟器
+- 已安装并登录的知乎 App（`com.zhihu.android`）
+- 正在抓包且手机已信任其 CA 的 Reqable
 
-```bash
-opencli plugin install github:xiaoqianran/reqable-zhihu
-opencli zhihu-mobile doctor --probe
-```
-
-安装完成后可以在任意目录调用插件。当前可用命令只有
-`doctor`、`recommend` 和 `answer-detail`；`search` 尚未实现。
-
-所有安装、配置、参数、数据源、输出格式和调试命令见
-[完整调用命令](./docs/commands.md)。
-
-连接 Android 和 Reqable 后，默认 `auto` 就是真实手机来源：
+从 GitHub 安装：
 
 ```powershell
-. .\scripts\setup-adb-reqable.ps1
-opencli zhihu-mobile recommend --limit 2
-opencli zhihu-mobile answer-detail 2046205897593173427
+opencli plugin install github:xiaoqianran/reqable-zhihu
+opencli plugin list -f json
 ```
 
-第一行需要在克隆的仓库目录运行；开头的点号会把设备序列号写入当前 PowerShell。也可以手动完成：
+配置 ADB reverse 与手机代理。克隆仓库后推荐使用脚本：
+
+```powershell
+cd D:\path\to\reqable-zhihu
+. .\scripts\setup-adb-reqable.ps1
+```
+
+也可以手动配置：
 
 ```powershell
 adb reverse tcp:9000 tcp:9000
 adb shell settings put global http_proxy 127.0.0.1:9000
+```
+
+检查链路：
+
+```powershell
 opencli zhihu-mobile doctor --probe
 ```
 
-使用内置脱敏 fixture 做离线验证：
+`reqableLive`、`adbDevice`、`zhihuApp` 应为 `ok`。`gateway` 和 `captureFile` 未配置不会影响默认手机链路。
 
-```bash
-opencli zhihu-mobile recommend --source fixture --limit 2 -f json
-opencli zhihu-mobile answer-detail 900000000000000001 --source fixture -f plain
+读取推荐，再查看一条回答：
+
+```powershell
+opencli zhihu-mobile recommend --limit 2
+opencli zhihu-mobile answer-detail 23109591027 --max-content 2000
 ```
 
-本地开发时，克隆仓库并安装本地版本：
+推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动，因此一次调用只产生一轮刷新请求。
 
-```bash
-git clone https://github.com/xiaoqianran/reqable-zhihu.git
-cd reqable-zhihu
-npm test
-opencli plugin install file://<本仓库绝对路径>
+更新插件：
+
+```powershell
+opencli plugin update reqable-zhihu
 ```
 
-同名插件不能同时安装 GitHub 版和本地版。切换来源前先执行：
-
-```bash
-opencli plugin uninstall reqable-zhihu
-```
-
-## 真实手机链路
-
-正式数据流是：
+## 工作方式
 
 ```text
 opencli zhihu-mobile recommend
-  → ADB 打开知乎首页、切到推荐并下拉刷新
-  → 知乎 App 自己生成登录态和请求签名
-  → adb reverse 把 App 流量送到 Reqable :9000
-  → 插件轮询 Reqable capture/live/filter + capture/live/get
-  → 只接受本次新增、adb 来源、URL 匹配、HTTP 2xx 的 JSON
-  → normalizer 输出稳定 columns
+  → 记录 Reqable 中已有的匹配请求
+  → ADB 打开知乎并执行一次首页刷新
+  → 知乎 App 自己发送已签名请求
+  → Reqable live API 返回本次新增响应
+  → 插件校验 adb 来源、URL、HTTP 2xx 与 JSON
+  → normalizer 输出稳定字段
 ```
 
-回答详情使用 `zhihu://answers/<id>` 打开 App。插件不会复制 Cookie、Bearer 或 `x-zse-*`，也不会重放签名请求。
+回答详情通过 `zhihu://answers/<id>` 打开 App，并采用同样的“先快照、后触发、只接受新增响应”流程。
 
-要求：
+## 数据源
 
-- 一台 `adb devices` 状态为 `device` 的 Android 设备
-- 已安装并登录 `com.zhihu.android`
-- Reqable 桌面端正在抓包，手机已信任其 CA
-- 手机代理为 `127.0.0.1:9000`，并存在 `adb reverse tcp:9000 tcp:9000`
+| `--source` | 用途 |
+|------------|------|
+| `auto` | 默认值，固定选择真实 `adb` 链路 |
+| `adb` | 显式使用 ADB + Reqable live API |
+| `capture` | 读取用户提供的脱敏 Reqable JSON 导出 |
+| `fixture` | 离线开发与契约测试 |
+| `remote` | 兼容旧版电脑 OpenCLI + Chrome 网关 |
 
-如连接多台设备：
+项目不会在真实链路失败后静默降级到 fixture 或 Chrome。完整参数、环境变量、输出格式和远程兼容命令见[命令手册](./docs/getting-started/commands.md)。
+
+## 常用参数
 
 ```powershell
-. .\scripts\setup-adb-reqable.ps1 -Serial emulator-5554
-opencli zhihu-mobile recommend --adb-serial emulator-5554 --limit 2
+opencli zhihu-mobile recommend `
+  --source adb `
+  --limit 10 `
+  --wait-seconds 30 `
+  --adb-serial emulator-5554 `
+  --reqable-url http://127.0.0.1:9000 `
+  -f json
+
+opencli zhihu-mobile answer-detail 23109591027 `
+  --source adb `
+  --max-content 0 `
+  -f json
 ```
 
-## 旧版远程兼容源
+连接多台设备时必须传 `--adb-serial`。`--max-content 0` 表示不截断正文。
 
-需要时仍可让可信电脑上的 OpenCLI/Chrome 执行：
+结束后可恢复手机代理：
 
-```bash
-# 电脑 PowerShell
-$env:ZHIHU_MOBILE_GATEWAY_TOKEN="<随机长令牌>"
-npm run gateway
-
-# 手机 / Termux
-export ZHIHU_MOBILE_GATEWAY_URL=http://<电脑局域网IP>:17830
-export ZHIHU_MOBILE_GATEWAY_TOKEN=<同一令牌>
-opencli zhihu-mobile recommend --source remote --limit 10
+```powershell
+adb shell settings put global http_proxy :0
+adb reverse --remove-all
 ```
 
-网关默认只监听 `127.0.0.1`。若要监听局域网，必须显式设置 `ZHIHU_MOBILE_GATEWAY_HOST=0.0.0.0`，并使用强随机令牌和可信网络。
+## 文档
 
-## 架构
+- [文档中心](./docs/README.md)
+- [命令手册](./docs/getting-started/commands.md)
+- [Android 与 Reqable 配置](./docs/getting-started/android-reqable.md)
+- [架构](./docs/design/architecture.md)
+- [数据获取策略](./docs/design/strategy.md)
+- [运行时与安全](./docs/design/runtime-security.md)
+- [协议研究](./docs/protocol/README.md)
+- [演进路线](./docs/design/roadmap.md)
 
-```text
-电脑 OpenCLI
-        │
-        ▼
-zhihu-mobile 命令层
-        │
-        ├── AdbReqableProvider   ──→ 知乎 Android App + Reqable live API
-        ├── RemoteGatewayProvider ──→ 电脑 OpenCLI + Chrome（兼容）
-        ├── CaptureFileProvider  ──→ Reqable 脱敏导出
-        └── FixtureProvider      ──→ 离线契约测试
-                    │
-                    ▼
-         normalizers + domain rows
+## 开发
+
+```powershell
+git clone https://github.com/xiaoqianran/reqable-zhihu.git
+cd reqable-zhihu
+npm test
+npm run check
+
+opencli plugin uninstall reqable-zhihu
+opencli plugin install file://D:/path/to/reqable-zhihu
 ```
 
-详细说明：
+同名 GitHub 版与本地版不能同时安装。命令入口保留在仓库根目录，具体实现位于 `src/providers`、`src/normalizers` 和 `src/runtime`。贡献前请阅读[开发指南](./docs/contributing/development.md)与 [Commit 规范](./docs/contributing/commits.md)。
 
-- [总体架构](./docs/architecture.md)
-- [完整调用命令](./docs/commands.md)
-- [Strategy 选择记录](./docs/strategy-note.md)
-- [运行与安全模型](./docs/runtime.md)
-- [演进路线](./docs/roadmap.md)
-- [开发指南](./docs/development.md)
+## 安全边界
 
-## 命令
-
-| 命令 | 说明 |
-|------|------|
-| `zhihu-mobile doctor` | 检查 source、网关和 capture 配置 |
-| `zhihu-mobile recommend` | 读取首页推荐 |
-| `zhihu-mobile answer-detail <id-or-url>` | 读取回答正文 |
-
-`source` 支持：
-
-- `auto`：使用真实 `adb` 手机链路
-- `adb`：显式使用 ADB + Reqable live
-- `remote`：调用可信执行器
-- `capture`：读取 Reqable 导出文件
-- `fixture`：仅用于开发和离线验证，必须显式指定
-
-## 协议研究文档
-
-| 文档 | 内容 |
-|------|------|
-| [docs/00-overview.md](./docs/00-overview.md) | Android App 协议总览 |
-| [docs/01-domains.md](./docs/01-domains.md) | 域名 / HTTP-DNS / CDN |
-| [docs/02-auth-headers.md](./docs/02-auth-headers.md) | Bearer、Cookie 与 `x-zse-*` |
-| [docs/03-apis-feed.md](./docs/03-apis-feed.md) | 推荐流 / 热榜 / 动态 |
-| [docs/04-apis-content.md](./docs/04-apis-content.md) | 回答与结构化正文 |
-| [docs/07-capture-setup.md](./docs/07-capture-setup.md) | Reqable 抓包环境 |
-| [schemas/openapi-zhihu-partial.yaml](./schemas/openapi-zhihu-partial.yaml) | 部分 OpenAPI 草图 |
-
-## 仓库结构
-
-```text
-reqable-zhihu/
-├── *.js                    # OpenCLI 根命令，插件加载器只扫描根目录
-├── src/
-│   ├── normalizers/        # Web/App 响应归一化
-│   ├── providers/          # adb+Reqable/remote/capture/fixture
-│   └── runtime/            # 参数、source 和配置
-├── scripts/gateway.mjs     # 可信电脑执行网关
-├── fixtures/               # 合成且脱敏的离线响应
-├── test/                   # Node 内置测试
-├── verify/                 # OpenCLI verify fixture 模板
-├── docs/                   # 架构 + 原协议手册
-├── examples/
-└── schemas/
-```
-
-## Commit 规范
-
-提交遵循阿里/Angular 约定式格式：
-
-```text
-<type>(<scope>): <subject>
-```
-
-详见 [docs/commit-convention.md](./docs/commit-convention.md)。
-
-## 合规与安全
-
-1. 只分析自己的设备、账号或已获授权的流量。
-2. 不提交真实 HAR、Bearer、Cookie、设备标识或完整私人响应。
-3. 默认只读；写操作不属于当前实验范围。
-4. 不保证非官方接口长期有效，字段漂移必须通过 fixture 和 verify 暴露。
+- 只分析自己的设备、账号或已获授权的流量。
+- 不提交真实 capture、Cookie、Bearer、设备标识或私人响应。
+- 当前命令均为只读；写操作不在现有权限模型内。
+- 不破解验证码、不绕过访问控制，也不承诺规避平台风控。
 
 ## License
 
