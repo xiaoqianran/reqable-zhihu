@@ -21,17 +21,36 @@
 
 要求 Node.js 21+、OpenCLI 1.8.6+。
 
+直接从 GitHub 安装：
+
 ```bash
-npm test
-opencli plugin install file://<本仓库绝对路径>
+opencli plugin install github:xiaoqianran/reqable-zhihu
 opencli zhihu-mobile doctor
 ```
+
+安装完成后可以在任意目录调用插件。当前可用命令只有
+`doctor`、`recommend` 和 `answer-detail`；`search` 尚未实现。
 
 使用内置脱敏 fixture 验证命令：
 
 ```bash
 opencli zhihu-mobile recommend --source fixture --limit 2 -f json
 opencli zhihu-mobile answer-detail 900000000000000001 --source fixture -f plain
+```
+
+本地开发时，克隆仓库并安装本地版本：
+
+```bash
+git clone https://github.com/xiaoqianran/reqable-zhihu.git
+cd reqable-zhihu
+npm test
+opencli plugin install file://<本仓库绝对路径>
+```
+
+同名插件不能同时安装 GitHub 版和本地版。切换来源前先执行：
+
+```bash
+opencli plugin uninstall reqable-zhihu
 ```
 
 使用可信电脑作为执行器：
