@@ -1,6 +1,6 @@
 {
   "name": "opencli-plugin-reqable-zhihu",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "private": true,
   "description": "Experimental mobile OpenCLI adapters and Reqable normalizers for Zhihu",
@@ -11,6 +11,11 @@
   },
   "peerDependencies": {
     "@jackwener/opencli": ">=1.8.6"
+  },
+  "peerDependenciesMeta": {
+    "@jackwener/opencli": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=21"

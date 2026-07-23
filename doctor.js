@@ -1,13 +1,14 @@
 import { cli, Strategy } from '@jackwener/opencli/registry';
 import { access } from 'node:fs/promises';
 import { runtimeConfig } from './src/runtime/config.js';
+import { probeAdbReqable } from './src/providers/adb-reqable.js';
 import { probeGateway } from './src/providers/remote-gateway.js';
 
 cli({
   site: 'zhihu-mobile',
   name: 'doctor',
   access: 'read',
-  description: '检查手机知乎 OpenCLI 的 source、网关和 capture 配置',
+  description: '检查 ADB、知乎 App、Reqable 实时 API 和兼容数据源',
   domain: 'localhost',
   strategy: Strategy.LOCAL,
   browser: false,
@@ -17,6 +18,24 @@ cli({
       type: 'bool',
       default: false,
       help: '实际探测远程网关健康接口',
+    },
+    {
+      name: 'adb-path',
+      type: 'string',
+      default: 'adb',
+      help: 'ADB 可执行文件；也可使用 ZHIHU_MOBILE_ADB_PATH',
+    },
+    {
+      name: 'adb-serial',
+      type: 'string',
+      default: '',
+      help: 'ADB 设备序列号；多设备时必填',
+    },
+    {
+      name: 'reqable-url',
+      type: 'string',
+      default: 'http://127.0.0.1:9000',
+      help: 'Reqable 实时 API；也可使用 REQABLE_ZHIHU_URL',
     },
     {
       name: 'gateway-url',
@@ -40,6 +59,22 @@ cli({
       source: config.requestedSource,
       detail: `node ${process.version}; platform ${process.platform}`,
     }];
+    if (args.probe) {
+      rows.push(...await probeAdbReqable(config));
+    } else {
+      rows.push({
+        component: 'reqableLive',
+        status: 'configured',
+        source: 'adb',
+        detail: `${config.reqableUrl}; pass --probe to test`,
+      });
+      rows.push({
+        component: 'adbDevice',
+        status: 'configured',
+        source: 'adb',
+        detail: `${config.adbPath}${config.adbSerial ? `; serial ${config.adbSerial}` : '; auto-select single device'}`,
+      });
+    }
     if (config.gatewayUrl) {
       const result = args.probe
         ? await probeGateway(config.gatewayUrl)

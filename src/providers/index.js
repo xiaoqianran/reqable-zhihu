@@ -10,6 +10,7 @@ import {
   readCaptureFile,
   recommendPayloadFromCapture,
 } from './capture-file.js';
+import { readAdbAnswer, readAdbRecommend } from './adb-reqable.js';
 import { requestGateway } from './remote-gateway.js';
 
 const FIXTURE_FILES = Object.freeze({
@@ -25,6 +26,9 @@ async function captureValue(source, config, fixtureKind) {
 }
 
 export async function readRecommend(source, config, options) {
+  if (source === 'adb') {
+    return readAdbRecommend(config, options);
+  }
   if (source === 'remote') {
     const rows = await requestGateway(config, 'recommend', { limit: options.limit });
     return normalizeRemoteRecommend(rows, { limit: options.limit });
@@ -38,6 +42,9 @@ export async function readRecommend(source, config, options) {
 }
 
 export async function readAnswer(source, config, target, options) {
+  if (source === 'adb') {
+    return readAdbAnswer(config, target, options);
+  }
   if (source === 'remote') {
     const rows = await requestGateway(config, 'answer-detail', {
       target: target.answerId,

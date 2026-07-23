@@ -1,6 +1,7 @@
 import { ProviderError } from '../errors.js';
+import { DEFAULT_REQABLE_URL } from '../providers/reqable-live.js';
 
-export const SOURCES = Object.freeze(['auto', 'remote', 'capture', 'fixture']);
+export const SOURCES = Object.freeze(['auto', 'adb', 'remote', 'capture', 'fixture']);
 
 function clean(value) {
   const text = String(value ?? '').trim();
@@ -10,6 +11,11 @@ function clean(value) {
 export function runtimeConfig(args = {}, env = process.env) {
   return {
     requestedSource: clean(args.source) ?? clean(env.ZHIHU_MOBILE_SOURCE) ?? 'auto',
+    adbPath: clean(args['adb-path']) ?? clean(env.ZHIHU_MOBILE_ADB_PATH) ?? 'adb',
+    adbSerial: clean(args['adb-serial']) ?? clean(env.ZHIHU_MOBILE_ADB_SERIAL),
+    reqableUrl: clean(args['reqable-url'])
+      ?? clean(env.REQABLE_ZHIHU_URL)
+      ?? DEFAULT_REQABLE_URL,
     gatewayUrl: clean(args['gateway-url']) ?? clean(env.ZHIHU_MOBILE_GATEWAY_URL),
     gatewayToken: clean(env.ZHIHU_MOBILE_GATEWAY_TOKEN),
     captureFile: clean(args['capture-file']) ?? clean(env.REQABLE_ZHIHU_CAPTURE_FILE),
@@ -25,12 +31,7 @@ export function resolveSource(config) {
     );
   }
   if (requested !== 'auto') return requested;
-  if (config.gatewayUrl) return 'remote';
-  if (config.captureFile) return 'capture';
-  throw new ProviderError(
-    'command',
-    'No live source is configured. Set ZHIHU_MOBILE_GATEWAY_URL or REQABLE_ZHIHU_CAPTURE_FILE; use --source fixture only for offline testing.',
-  );
+  return 'adb';
 }
 
 export function validateLimit(value, defaultValue = 20, maxValue = 100) {
@@ -56,6 +57,18 @@ export function validateMaxContent(value, maxValue = 1_000_000) {
   }
   if (number > maxValue) {
     throw new ProviderError('argument', `max-content must be <= ${maxValue}`);
+  }
+  return number;
+}
+
+export function validateWaitSeconds(value, defaultValue = 20, maxValue = 120) {
+  const raw = value ?? defaultValue;
+  const number = Number(raw);
+  if (!Number.isInteger(number) || number <= 0) {
+    throw new ProviderError('argument', 'wait-seconds must be a positive integer');
+  }
+  if (number > maxValue) {
+    throw new ProviderError('argument', `wait-seconds must be <= ${maxValue}`);
   }
   return number;
 }
