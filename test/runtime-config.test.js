@@ -6,9 +6,10 @@ import {
   runtimeConfig,
   validateLimit,
   validateMaxContent,
+  validateWaitSeconds,
 } from '../src/runtime/config.js';
 
-test('auto source prefers configured remote gateway', () => {
+test('auto source selects the real Android path', () => {
   const config = runtimeConfig(
     { source: 'auto' },
     {
@@ -16,28 +17,33 @@ test('auto source prefers configured remote gateway', () => {
       REQABLE_ZHIHU_CAPTURE_FILE: 'capture.json',
     },
   );
-  assert.equal(resolveSource(config), 'remote');
+  assert.equal(resolveSource(config), 'adb');
 });
 
-test('auto source uses capture when remote is absent', () => {
+test('legacy sources remain explicitly selectable', () => {
   const config = runtimeConfig(
-    { source: 'auto' },
+    { source: 'capture' },
     { REQABLE_ZHIHU_CAPTURE_FILE: 'capture.json' },
   );
   assert.equal(resolveSource(config), 'capture');
 });
 
-test('auto source never silently falls back to fixture', () => {
+test('auto source never silently falls back to fixture or Chrome', () => {
   const config = runtimeConfig({ source: 'auto' }, {});
-  assert.throws(() => resolveSource(config), /No live source is configured/);
+  assert.equal(resolveSource(config), 'adb');
+  assert.equal(config.reqableUrl, 'http://127.0.0.1:9000');
+  assert.equal(config.adbPath, 'adb');
 });
 
-test('limit and max-content reject invalid values instead of clamping', () => {
+test('numeric options reject invalid values instead of clamping', () => {
   assert.equal(validateLimit(20), 20);
   assert.throws(() => validateLimit(101), /limit must be <= 100/);
   assert.throws(() => validateLimit(0), /positive integer/);
   assert.equal(validateMaxContent(0), 0);
   assert.throws(() => validateMaxContent(-1), /non-negative integer/);
+  assert.equal(validateWaitSeconds(20), 20);
+  assert.throws(() => validateWaitSeconds(0), /positive integer/);
+  assert.throws(() => validateWaitSeconds(121), /must be <= 120/);
 });
 
 test('answer target keeps long IDs as strings', () => {
