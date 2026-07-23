@@ -2,7 +2,10 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { once } from 'node:events';
 import { buildOpenCliInvocation } from '../src/gateway/command.js';
-import { createGateway } from '../src/gateway/server.js';
+import {
+  createGateway,
+  resolveOpenCliProcess,
+} from '../src/gateway/server.js';
 import { requestGateway } from '../src/providers/remote-gateway.js';
 
 const TOKEN = 'test-token-that-is-longer-than-24-characters';
@@ -31,6 +34,20 @@ test('gateway invocation is allowlisted and shell-free', () => {
     () => buildOpenCliInvocation('comment', { execute: true }),
     /not allowed/,
   );
+});
+
+test('Windows gateway uses the PowerShell npm shim without enabling a shell', () => {
+  const shim = 'C:\\tools\\opencli.ps1';
+  const spec = resolveOpenCliProcess({
+    platform: 'win32',
+    env: {
+      PATH: 'C:\\tools',
+      OPENCLI_POWERSHELL_BIN: 'pwsh.exe',
+    },
+    fileExists: (candidate) => candidate === shim,
+  });
+  assert.equal(spec.executable, 'pwsh.exe');
+  assert.deepEqual(spec.prefixArgs.slice(-2), ['-File', shim]);
 });
 
 test('gateway health is public but execution requires a token', async (t) => {

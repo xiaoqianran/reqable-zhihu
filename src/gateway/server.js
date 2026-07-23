@@ -1,5 +1,7 @@
 import { spawn } from 'node:child_process';
+import { existsSync } from 'node:fs';
 import { createServer } from 'node:http';
+import { delimiter, join, win32 } from 'node:path';
 import { ProviderError } from '../errors.js';
 import { buildOpenCliInvocation } from './command.js';
 
@@ -37,14 +39,76 @@ function authorized(request, token) {
   return request.headers.authorization === expected;
 }
 
+function findOnPath(fileName, env, fileExists, platform) {
+  const pathDelimiter = platform === 'win32' ? ';' : delimiter;
+  const joinPath = platform === 'win32' ? win32.join : join;
+  return String(env.PATH ?? '')
+    .split(pathDelimiter)
+    .filter(Boolean)
+    .map((directory) => joinPath(directory.replace(/^"|"$/g, ''), fileName))
+    .find((candidate) => fileExists(candidate)) ?? null;
+}
+
+export function resolveOpenCliProcess(options = {}) {
+  const platform = options.platform ?? process.platform;
+  const env = options.env ?? process.env;
+  const configured = options.opencliBin ?? env.OPENCLI_BIN;
+  if (platform !== 'win32') {
+    return {
+      executable: configured ?? 'opencli',
+      prefixArgs: [],
+    };
+  }
+
+  if (configured && !/\.(cmd|bat|ps1)$/i.test(configured)) {
+    return {
+      executable: configured,
+      prefixArgs: [],
+    };
+  }
+
+  const fileExists = options.fileExists ?? existsSync;
+  const configuredPowerShellShim = configured
+    ? configured.replace(/\.(cmd|bat)$/i, '.ps1')
+    : null;
+  const powerShellShim = configuredPowerShellShim && fileExists(configuredPowerShellShim)
+    ? configuredPowerShellShim
+    : findOnPath('opencli.ps1', env, fileExists, platform);
+  if (!powerShellShim) {
+    throw new Error(
+      'Unable to locate opencli.ps1 on PATH; set OPENCLI_BIN to an executable or shim path',
+    );
+  }
+
+  return {
+    executable: options.powerShellBin ?? env.OPENCLI_POWERSHELL_BIN ?? 'powershell.exe',
+    prefixArgs: [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      powerShellShim,
+    ],
+  };
+}
+
 export function executeOpenCli(command, args, options = {}) {
   const invocation = buildOpenCliInvocation(command, args);
-  const executable = options.opencliBin
-    ?? process.env.OPENCLI_BIN
-    ?? (process.platform === 'win32' ? 'opencli.cmd' : 'opencli');
+  let processSpec;
+  try {
+    processSpec = resolveOpenCliProcess(options);
+  } catch (error) {
+    return Promise.resolve({
+      ok: false,
+      exitCode: 1,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
   const timeoutMs = options.timeoutMs ?? 120_000;
   return new Promise((resolve) => {
-    const child = spawn(executable, invocation, {
+    const child = spawn(processSpec.executable, [...processSpec.prefixArgs, ...invocation], {
       shell: false,
       windowsHide: true,
       env: process.env,
