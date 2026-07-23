@@ -10,7 +10,7 @@
 - `doctor`、`recommend`、`answer-detail` 三个稳定命令入口。
 - `auto` 默认使用 ADB + Reqable，不依赖 Chrome。
 - App 自己生成登录态和动态签名，插件只读取本次新增响应。
-- 推荐只执行一次自然刷新，避免重复请求。
+- 推荐只执行一次自然刷新，避免重复 UI 动作。
 - capture、fixture 和 remote 作为显式辅助数据源。
 - typed error、统一 normalizer、单元测试和真实链路验证。
 

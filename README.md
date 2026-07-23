@@ -64,7 +64,7 @@ opencli zhihu-mobile recommend --limit 2
 opencli zhihu-mobile answer-detail 23109591027 --max-content 2000
 ```
 
-推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动，因此一次调用只产生一轮刷新请求。
+推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动。一次调用只有一轮显式 UI 刷新；知乎 App 仍可能在这一轮内自行预取多页 HTTP 响应。
 
 更新插件：
 

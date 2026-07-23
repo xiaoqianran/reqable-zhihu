@@ -10,7 +10,7 @@ Evidence:
 
 - observed request/state: `GET api.zhihu.com/topstory/recommend`、`GET */answers/v2/{id}` 返回非空 JSON。
 - auth source: Android App 自己生成的 Bearer、Cookie、`x-zse-96`、`x-zst-*` 和设备头。
-- replay result: 2026-07-24 已实测单次首页触发只新增 1 条推荐请求；`recommend` 返回 2 条新推荐，第一条 ID 随后经 `answer-detail` 返回非空结构化正文。
+- replay result: 2026-07-24 已实测单次首页触发返回真实推荐；`recommend` 返回 2 条，第一条 ID 随后经 `answer-detail` 返回非空结构化正文。同一轮刷新可能由 App 自行预取多个分页响应。
 
 Why PUBLIC_API / COOKIE_API are unavailable:
 
@@ -31,7 +31,7 @@ Why the maintenance cost is acceptable:
 
 - 命令声明仍是 `Strategy.LOCAL`、`browser: false`，因为 OpenCLI 只连接本机 ADB/Reqable；内部数据策略是 `INTERCEPT`。
 - 触发前记录 Reqable ID 快照，只接受新增记录。
-- 推荐页只保留一次自然刷新动作，避免同一命令产生两批请求。
+- 推荐页只保留一次自然刷新动作，避免同一命令产生两轮显式 UI 刷新。App 内部预取多个分页响应不视为插件重复触发。
 - 记录必须来自 `adb` 进程、URL 匹配、HTTP 2xx 且正文为 JSON。
 - Reqable 的无时区时间戳不参与新旧判断，避免本地时区误差。
 
