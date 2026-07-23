@@ -87,7 +87,7 @@ opencli zhihu-mobile search "AI" --limit 10
 opencli zhihu-mobile search "人工智能" --limit 10 -f json
 ```
 
-搜索通过 URL 编码的知乎 Deeplink 打开 App，不依赖 ADB 模拟中文键盘。结果会排除广告、热词等非业务卡片。
+搜索默认使用适合阅读多条长摘要的 `plain` 输出；脚本处理时显式使用 `-f json`。它通过 URL 编码的知乎 Deeplink 打开 App，不依赖 ADB 模拟中文键盘，并排除广告、热词等非业务卡片。
 
 推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动。一次调用只有一轮显式 UI 刷新；知乎 App 仍可能在这一轮内自行预取多页 HTTP 响应。
 

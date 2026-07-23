@@ -36,6 +36,7 @@ test('recommended answers expose a stable full-content command contract', () => 
 test('search exposes a positional query and stable result columns', () => {
   const command = getRegistry().get('zhihu-mobile/search');
   assert.ok(command);
+  assert.equal(command.defaultFormat, 'plain');
   assert.equal(command.browser, false);
   assert.equal(command.args[0].name, 'query');
   assert.equal(command.args[0].positional, true);

@@ -141,7 +141,7 @@ opencli zhihu-mobile search "人工智能" --limit 10
 opencli zhihu-mobile search "AI Agent" --limit 20 -f json
 ```
 
-搜索结果统一包含 `answer / article / question / people / topic / pin` 等可识别类型，并过滤广告、热词和其他非 `search_result` 卡片。标题和摘要中的 `<em>` 高亮标签会被移除。
+搜索默认使用 `plain` 输出，避免标题和长摘要撑宽表格；需要结构化数组时使用 `-f json`，需要表格时可显式使用 `-f table`。结果统一包含 `answer / article / question / people / topic / pin` 等可识别类型，并过滤广告、热词和其他非 `search_result` 卡片。标题和摘要中的 `<em>` 高亮标签会被移除。
 
 | 参数 | 默认值 | 说明 |
 |------|--------|------|
