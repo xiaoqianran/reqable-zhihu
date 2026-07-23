@@ -1,0 +1,39 @@
+{
+  "args": [
+    "AI",
+    "--source",
+    "fixture",
+    "--limit",
+    "3"
+  ],
+  "expect": {
+    "rowCount": {
+      "min": 1,
+      "max": 1
+    },
+    "columns": [
+      "rank",
+      "id",
+      "author",
+      "votes",
+      "comments",
+      "questionId",
+      "questionTitle",
+      "url",
+      "createdAt",
+      "updatedAt",
+      "content",
+      "source"
+    ],
+    "patterns": {
+      "id": "^\\d+$",
+      "url": "^https://www\\.zhihu\\.com/question/\\d+/answer/\\d+$",
+      "source": "^fixture$"
+    },
+    "notEmpty": [
+      "questionTitle",
+      "content",
+      "url"
+    ]
+  }
+}

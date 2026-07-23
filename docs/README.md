@@ -4,7 +4,7 @@
 
 ## 开始使用
 
-- [命令手册](./getting-started/commands.md)：安装、诊断、推荐、回答详情、数据源和调试参数。
+- [命令手册](./getting-started/commands.md)：安装、诊断、推荐、搜索、组合读取、回答详情、数据源和调试参数。
 - [配置 Android 与 Reqable](./getting-started/android-reqable.md)：ADB reverse、系统代理、CA 与抓包过滤。
 
 ## 设计与演进

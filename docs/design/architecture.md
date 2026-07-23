@@ -22,7 +22,8 @@
                        ▼
 ┌────────────────────────────────────────────┐
 │ OpenCLI plugin command layer               │
-│ recommend / search / answer-detail / recommend-answers / doctor │
+│ recommend / search / answer-detail / recommend-answers          │
+│ search-answers / doctor                                         │
 └──────────────────────┬─────────────────────┘
                        │ normalized provider API
           ┌────────────┼──────────────┬─────────────┐
@@ -80,6 +81,13 @@
 ```text
 recommend-answers
   → readRecommend(limit)
+  → filter type=answer
+  → parseAnswerTarget(url)
+  → sequential readAnswer(target)
+  → rank + answer detail rows
+
+search-answers
+  → readSearch(query, limit)
   → filter type=answer
   → parseAnswerTarget(url)
   → sequential readAnswer(target)

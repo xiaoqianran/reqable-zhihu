@@ -4,6 +4,7 @@ import { getRegistry } from '@jackwener/opencli/registry';
 import '../answer-detail.js';
 import '../recommend-answers.js';
 import '../search.js';
+import '../search-answers.js';
 
 test('answer detail defaults to readable plain output', () => {
   const command = getRegistry().get('zhihu-mobile/answer-detail');
@@ -50,6 +51,29 @@ test('search exposes a positional query and stable result columns', () => {
     'comments',
     'excerpt',
     'url',
+    'source',
+  ]);
+});
+
+test('search answers expose a positional query and full-content contract', () => {
+  const command = getRegistry().get('zhihu-mobile/search-answers');
+  assert.ok(command);
+  assert.equal(command.defaultFormat, 'plain');
+  assert.equal(command.browser, false);
+  assert.equal(command.args[0].name, 'query');
+  assert.equal(command.args[0].positional, true);
+  assert.deepEqual(command.columns, [
+    'rank',
+    'id',
+    'author',
+    'votes',
+    'comments',
+    'questionId',
+    'questionTitle',
+    'url',
+    'createdAt',
+    'updatedAt',
+    'content',
     'source',
   ]);
 });

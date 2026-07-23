@@ -61,7 +61,7 @@ Capture provider 不发起知乎请求，因此不是签名绕过方案。
 
 ## 组合读取路径
 
-`recommend-answers` 不引入新的数据策略。它串行复用推荐与回答详情两段 `INTERCEPT`，只把 `type=answer` 的推荐 URL 传入现有 `parseAnswerTarget` / `readAnswer` 契约。专栏和问题卡片不做隐式类型转换；批次没有回答时返回 typed empty error。
+`recommend-answers` 和 `search-answers` 不引入新的数据策略。前者串行复用推荐与回答详情两段 `INTERCEPT`；后者串行复用搜索与回答详情两段 `INTERCEPT`。两者都只把 `type=answer` 的 URL 传入现有 `parseAnswerTarget` / `readAnswer` 契约。专栏、问题、用户等其他卡片不做隐式类型转换；批次没有回答时返回 typed empty error。
 
 ## 搜索路径
 

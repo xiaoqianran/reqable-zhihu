@@ -15,6 +15,7 @@
 | `opencli zhihu-mobile doctor --probe` | 检查 ADB、知乎 App 和 Reqable |
 | `opencli zhihu-mobile recommend --limit 2` | 获取真实首页推荐 |
 | `opencli zhihu-mobile search "AI" --limit 10` | 搜索回答、专栏、问题和用户 |
+| `opencli zhihu-mobile search-answers "AI" --limit 5` | 搜索并展开其中全部回答正文 |
 | `opencli zhihu-mobile answer-detail <回答ID>` | 获取回答正文 |
 | `opencli zhihu-mobile recommend-answers --limit 5` | 展开一批推荐中的全部回答正文 |
 
@@ -89,6 +90,18 @@ opencli zhihu-mobile search "人工智能" --limit 10 -f json
 
 搜索默认使用适合阅读多条长摘要的 `plain` 输出；脚本处理时显式使用 `-f json`。它通过 URL 编码的知乎 Deeplink 打开 App，不依赖 ADB 模拟中文键盘，并排除广告、热词等非业务卡片。
 
+直接搜索并展开前几条结果中的所有回答：
+
+```powershell
+# 默认输出完整正文
+opencli zhihu-mobile search-answers "AI" --limit 5
+
+# 返回结构化 JSON 数组
+opencli zhihu-mobile search-answers "人工智能" --limit 5 -f json
+```
+
+`search-answers` 严格串行操作知乎 App。`--limit` 是本轮检查的搜索结果数，专栏、用户等非回答结果会被排除。
+
 推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动。一次调用只有一轮显式 UI 刷新；知乎 App 仍可能在这一轮内自行预取多页 HTTP 响应。
 
 更新插件：
@@ -149,6 +162,12 @@ opencli zhihu-mobile search "人工智能" `
   --source adb `
   --limit 10 `
   --wait-seconds 30 `
+  -f json
+
+opencli zhihu-mobile search-answers "人工智能" `
+  --source adb `
+  --limit 5 `
+  --max-content 0 `
   -f json
 ```
 
