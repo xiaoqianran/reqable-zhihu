@@ -100,6 +100,17 @@ Android 7+ 默认不信任用户 CA。若只装用户证书且目标是 **自研
 
 本仓库接口表即通过 MCP + 人工整理产生。
 
+## 本机实时 API
+
+插件本身不要求 MCP 客户端。Reqable 抓包开启后，本机代理端口同时提供只读 live API：
+
+```text
+POST http://127.0.0.1:9000/capture/live/filter
+POST http://127.0.0.1:9000/capture/live/get
+```
+
+`zhihu-mobile` 先保存匹配 ID，再通过 ADB 触发 App，只读取随后新增的匹配记录。API URL 被限制为无凭证的 loopback HTTP 地址，避免把抓包内容发送给远程服务。
+
 ## 推荐过滤
 
 ```text

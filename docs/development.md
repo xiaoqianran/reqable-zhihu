@@ -15,6 +15,8 @@ opencli plugin install file://<repo>
 opencli list -f json
 opencli zhihu-mobile doctor
 opencli zhihu-mobile recommend --source fixture --limit 2 -f json
+opencli zhihu-mobile doctor --probe -f json
+opencli zhihu-mobile recommend --limit 2 -f json
 ```
 
 ## 新命令规则

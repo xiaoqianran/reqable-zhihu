@@ -11,7 +11,7 @@
 
 ## Phase 1：可安装插件与远程纵向切片
 
-状态：基础实现完成，等待真实手机与已登录 Browser Bridge 联调
+状态：已完成，保留为兼容源
 
 - OpenCLI plugin manifest
 - `zhihu-mobile doctor`
@@ -29,6 +29,8 @@
 
 ## Phase 2：Reqable 本地桥接
 
+状态：已完成
+
 - 定义脱敏 capture export schema。
 - 支持从 Reqable MCP 查询最新匹配记录。
 - 对 schema 漂移生成可读诊断。
@@ -43,6 +45,8 @@
 - Termux 内完全本地运行 COOKIE 类命令。
 
 ## Phase 4：App Intercept Provider
+
+状态：推荐与回答正文纵向切片已完成
 
 - 通过 Intent/用户操作触发知乎 App 请求。
 - 等待匹配的 Reqable response。

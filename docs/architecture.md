@@ -2,7 +2,7 @@
 
 ## 目标
 
-让用户在 Android 手机上执行稳定的 OpenCLI 命令读取知乎内容，同时允许项目逐步从“电脑代执行”演进到“手机本地执行”，而不改变命令和输出契约。
+让 OpenCLI 直接驱动 Android 知乎 App，并把 Reqable 捕获的本次 App 响应转换成稳定命令输出。
 
 ## 非目标
 
@@ -25,13 +25,13 @@
 │ recommend / answer-detail / doctor         │
 └──────────────────────┬─────────────────────┘
                        │ normalized provider API
-          ┌────────────┼─────────────┐
-          ▼            ▼             ▼
-   Remote gateway   Capture file   Fixture
-          │            │             │
-          ▼            ▼             ▼
- Desktop OpenCLI   Reqable export  Offline tests
- + Chrome session  JSON records
+          ┌────────────┼──────────────┬─────────────┐
+          ▼            ▼              ▼             ▼
+   ADB + Reqable   Remote gateway  Capture file   Fixture
+          │            │              │             │
+          ▼            ▼              ▼             ▼
+  Android Zhihu   Desktop OpenCLI  Reqable export Offline tests
+  App live traffic + Chrome
 ```
 
 ### 命令层
@@ -56,15 +56,12 @@
 }
 ```
 
-- `RemoteGatewayProvider`：调用可信电脑，由电脑上的内置 `opencli zhihu/*` 复用 Chrome 登录态。
+- `AdbReqableProvider`：驱动 App 产生请求，轮询 Reqable live API 获取新增响应。
+- `RemoteGatewayProvider`：兼容路径；调用可信电脑并复用 Chrome 登录态。
 - `CaptureFileProvider`：读取用户显式提供的 Reqable JSON 导出，不重放签名请求。
 - `FixtureProvider`：读取合成脱敏样例，只用于测试与开发。
 
-后续可以加入：
-
-- `ReqableMcpProvider`：通过受控本地桥接调用 Reqable MCP。
-- `AndroidWebViewProvider`：由 Android Companion 提供最小 `goto/fetchJson/session` 能力。
-- `AndroidInterceptProvider`：驱动已登录 App 产生请求并截获响应。
+当前 live API 使用 Reqable 本机的 `capture/live/filter` 与 `capture/live/get`，不依赖 AI 客户端或 MCP。
 
 ### Normalizer 层
 
@@ -106,10 +103,22 @@ Reqable export
   → OpenCLI rows
 ```
 
+### ADB + Reqable live
+
+```text
+snapshot matching capture IDs
+  → ADB launch/tap/swipe or zhihu://answers/<id>
+  → poll matching Reqable IDs
+  → require new ID + adb process + 2xx + JSON
+  → normalize App payload
+  → OpenCLI rows
+```
+
 ## 关键约束
 
 - 网关用 `spawn` 参数数组，不通过 shell 拼接命令。
 - 非 loopback 监听必须配置 Bearer token。
 - capture 文件路径由用户显式提供或通过环境变量配置。
 - fixture 永不作为 `auto` 的隐式 fallback。
+- `auto` 固定选择 `adb`，不会无提示改走 Chrome。
 - API 空结果抛 `EmptyResultError`，配置/协议错误抛 `CommandExecutionError`。

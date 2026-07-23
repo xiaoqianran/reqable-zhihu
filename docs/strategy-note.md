@@ -1,24 +1,6 @@
 # OpenCLI Strategy Note
 
-## 默认读取路径
-
-Strategy: `COOKIE_API`（由远程电脑上的内置 OpenCLI 知乎 adapter 执行）
-
-Contract: `stable`
-
-Evidence:
-
-- observed request/state: 现有 OpenCLI 1.8.6 注册了 `zhihu/recommend`、`zhihu/search`、`zhihu/answer-detail` 等 COOKIE 命令。
-- auth source: 已登录 Chrome 会话；Cookie 由 OpenCLI Browser Bridge 管理，不传给手机。
-- replay result: 当前工作区已确认 22 个知乎命令存在；实际联网验证依赖 Browser Bridge 扩展连接。
-
-选择原因：
-
-- 手机端只接收结构化结果，不接触 Cookie。
-- 命令和分页逻辑直接复用 OpenCLI 现有实现。
-- 第一阶段无需在 Android 上复刻 Chrome 扩展协议。
-
-## Reqable / Android App 路径
+## 默认读取路径：Reqable / Android App
 
 Strategy: `INTERCEPT`
 
@@ -28,7 +10,7 @@ Evidence:
 
 - observed request/state: `GET api.zhihu.com/topstory/recommend`、`GET */answers/v2/{id}` 返回非空 JSON。
 - auth source: Android App 自己生成的 Bearer、Cookie、`x-zse-96`、`x-zst-*` 和设备头。
-- replay result: Reqable 能解密并读取成功响应；修改 URL 或长期重放原签名没有稳定契约。
+- replay result: 2026-07-24 已实测 `recommend` 返回 2 条新推荐，第一条 ID 随后经 `answer-detail` 返回非空结构化正文。
 
 Why PUBLIC_API / COOKIE_API are unavailable:
 
@@ -43,7 +25,24 @@ Why UI_SELECTOR / DOM_STATE are not safer:
 Why the maintenance cost is acceptable:
 
 - Intercept 仅用于 App 独占数据、协议侦察、fixture 更新与故障修复。
-- 默认用户路径仍是 remote COOKIE provider，不把高漂移策略扩散到全部命令。
+- provider 只读取 App 本次合法获得的响应，不重放请求；fixture 和 typed error 暴露漂移。
+
+实现边界：
+
+- 命令声明仍是 `Strategy.LOCAL`、`browser: false`，因为 OpenCLI 只连接本机 ADB/Reqable；内部数据策略是 `INTERCEPT`。
+- 触发前记录 Reqable ID 快照，只接受新增记录。
+- 记录必须来自 `adb` 进程、URL 匹配、HTTP 2xx 且正文为 JSON。
+- Reqable 的无时区时间戳不参与新旧判断，避免本地时区误差。
+
+## 远程兼容路径
+
+Strategy: `COOKIE_API`
+
+Contract: `stable`
+
+- observed request/state: OpenCLI 内置 `zhihu/recommend` 与 `zhihu/answer-detail`。
+- auth source: 已登录 Chrome 会话。
+- replay result: 仅在显式 `--source remote` 时使用。
 
 ## Capture file 路径
 

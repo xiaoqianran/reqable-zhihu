@@ -4,14 +4,16 @@
 [![OpenCLI Plugin](https://img.shields.io/badge/OpenCLI-plugin-blue)](./opencli-plugin.json)
 [![Status](https://img.shields.io/badge/status-experimental-orange)](./docs/roadmap.md)
 
-`reqable-zhihu` 是一个面向实验和长期演进的 OpenCLI 插件：目标是在手机上用统一命令读取知乎推荐、搜索结果和正文，同时保留 Reqable 对 Android App 协议的观测、脱敏和修复能力。
+`reqable-zhihu` 是一个面向实验和长期演进的 OpenCLI 插件：它通过 ADB 驱动已登录的知乎 Android App，由 Reqable 读取 App 本次产生的响应，再以 OpenCLI 命令输出推荐和正文。
 
 项目仍是非官方、研究向实现。它不会破解验证码或绕过访问控制，也不会把抓到的 Bearer、Cookie、`x-zse-*` 写入仓库。
 
 ## 当前能力
 
 - OpenCLI 插件命名空间：`zhihu-mobile`
-- 远程执行：手机将只读命令交给可信电脑上的 OpenCLI/Chrome
+- 真实 Android 数据源：ADB 驱动知乎 App，Reqable 实时读取响应
+- 默认不需要 Chrome 或 OpenCLI Browser Bridge
+- 远程兼容源：仍可显式使用电脑 OpenCLI/Chrome
 - Reqable 导出读取：从本地脱敏 capture JSON 解析推荐流和回答正文
 - 统一数据模型：Web API 与 Android App API 映射到同一列结构
 - 离线 fixture：不连接知乎即可验证 normalizer 和 CLI 契约
@@ -25,13 +27,29 @@
 
 ```bash
 opencli plugin install github:xiaoqianran/reqable-zhihu
-opencli zhihu-mobile doctor
+opencli zhihu-mobile doctor --probe
 ```
 
 安装完成后可以在任意目录调用插件。当前可用命令只有
 `doctor`、`recommend` 和 `answer-detail`；`search` 尚未实现。
 
-使用内置脱敏 fixture 验证命令：
+连接 Android 和 Reqable 后，默认 `auto` 就是真实手机来源：
+
+```powershell
+. .\scripts\setup-adb-reqable.ps1
+opencli zhihu-mobile recommend --limit 2
+opencli zhihu-mobile answer-detail 2046205897593173427
+```
+
+第一行需要在克隆的仓库目录运行；开头的点号会把设备序列号写入当前 PowerShell。也可以手动完成：
+
+```powershell
+adb reverse tcp:9000 tcp:9000
+adb shell settings put global http_proxy 127.0.0.1:9000
+opencli zhihu-mobile doctor --probe
+```
+
+使用内置脱敏 fixture 做离线验证：
 
 ```bash
 opencli zhihu-mobile recommend --source fixture --limit 2 -f json
@@ -53,38 +71,39 @@ opencli plugin install file://<本仓库绝对路径>
 opencli plugin uninstall reqable-zhihu
 ```
 
-## ADB 本地开发
+## 真实手机链路
 
-电脑已连接一台授权的 Android 设备后，可通过 ADB reverse 让手机使用
-`127.0.0.1:17830` 访问电脑网关，无需开放局域网端口。
-
-在第一个 PowerShell 窗口启动网关并保持窗口运行：
-
-```powershell
-cd D:\path\to\reqable-zhihu
-.\scripts\start-adb-gateway.ps1
-```
-
-脚本会生成 `.opencli/gateway-token`（已被 Git 忽略），并自动执行：
+正式数据流是：
 
 ```text
-adb reverse tcp:17830 tcp:17830
+opencli zhihu-mobile recommend
+  → ADB 打开知乎首页、切到推荐并下拉刷新
+  → 知乎 App 自己生成登录态和请求签名
+  → adb reverse 把 App 流量送到 Reqable :9000
+  → 插件轮询 Reqable capture/live/filter + capture/live/get
+  → 只接受本次新增、adb 来源、URL 匹配、HTTP 2xx 的 JSON
+  → normalizer 输出稳定 columns
 ```
 
-在第二个 PowerShell 窗口加载相同令牌并验证：
+回答详情使用 `zhihu://answers/<id>` 打开 App。插件不会复制 Cookie、Bearer 或 `x-zse-*`，也不会重放签名请求。
+
+要求：
+
+- 一台 `adb devices` 状态为 `device` 的 Android 设备
+- 已安装并登录 `com.zhihu.android`
+- Reqable 桌面端正在抓包，手机已信任其 CA
+- 手机代理为 `127.0.0.1:9000`，并存在 `adb reverse tcp:9000 tcp:9000`
+
+如连接多台设备：
 
 ```powershell
-cd D:\path\to\reqable-zhihu
-. .\scripts\use-adb-gateway.ps1
-opencli zhihu-mobile doctor --probe
-opencli zhihu-mobile recommend --source remote --limit 2
+. .\scripts\setup-adb-reqable.ps1 -Serial emulator-5554
+opencli zhihu-mobile recommend --adb-serial emulator-5554 --limit 2
 ```
 
-注意第一个点号是 PowerShell 的 dot-source，用于把环境变量加载到当前窗口。
-真实知乎命令仍要求电脑 Chrome 已登录知乎，并且 OpenCLI Browser Bridge
-扩展处于连接状态。
+## 旧版远程兼容源
 
-使用可信电脑作为执行器：
+需要时仍可让可信电脑上的 OpenCLI/Chrome 执行：
 
 ```bash
 # 电脑 PowerShell
@@ -102,12 +121,13 @@ opencli zhihu-mobile recommend --source remote --limit 10
 ## 架构
 
 ```text
-手机 OpenCLI / Termux
+电脑 OpenCLI
         │
         ▼
 zhihu-mobile 命令层
         │
-        ├── RemoteGatewayProvider ──→ 电脑 OpenCLI + Chrome
+        ├── AdbReqableProvider   ──→ 知乎 Android App + Reqable live API
+        ├── RemoteGatewayProvider ──→ 电脑 OpenCLI + Chrome（兼容）
         ├── CaptureFileProvider  ──→ Reqable 脱敏导出
         └── FixtureProvider      ──→ 离线契约测试
                     │
@@ -133,7 +153,8 @@ zhihu-mobile 命令层
 
 `source` 支持：
 
-- `auto`：优先远程网关，其次 capture；没有配置时明确报错
+- `auto`：使用真实 `adb` 手机链路
+- `adb`：显式使用 ADB + Reqable live
 - `remote`：调用可信执行器
 - `capture`：读取 Reqable 导出文件
 - `fixture`：仅用于开发和离线验证，必须显式指定
@@ -157,7 +178,7 @@ reqable-zhihu/
 ├── *.js                    # OpenCLI 根命令，插件加载器只扫描根目录
 ├── src/
 │   ├── normalizers/        # Web/App 响应归一化
-│   ├── providers/          # remote/capture/fixture
+│   ├── providers/          # adb+Reqable/remote/capture/fixture
 │   └── runtime/            # 参数、source 和配置
 ├── scripts/gateway.mjs     # 可信电脑执行网关
 ├── fixtures/               # 合成且脱敏的离线响应
