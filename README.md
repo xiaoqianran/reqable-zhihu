@@ -160,6 +160,10 @@ reqable-zhihu/
 
 ---
 
+## Commit 规范
+
+提交信息遵循阿里/约定式提交：`<type>(<scope>): <subject>`。详见 [docs/commit-convention.md](./docs/commit-convention.md)。
+
 ## License
 
 [MIT](./LICENSE)
