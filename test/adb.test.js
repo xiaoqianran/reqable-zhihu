@@ -15,7 +15,7 @@ test('ADB parser preserves device serials and prefers override screen size', () 
   );
 });
 
-test('ADB client prepares reverse proxy and drives the Zhihu recommendation UI', async () => {
+test('ADB client prepares reverse proxy and refreshes Zhihu recommendation once', async () => {
   const calls = [];
   const runner = async (_file, args) => {
     calls.push(args);
@@ -46,8 +46,16 @@ test('ADB client prepares reverse proxy and drives the Zhihu recommendation UI',
   });
   await client.openRecommend();
   assert.ok(calls.some((args) => args.join(' ').includes('reverse tcp:9000 tcp:9000')));
-  assert.ok(calls.some((args) => args.join(' ').includes('input swipe 540 648 540 1992 250')));
-  assert.ok(calls.some((args) => args.join(' ').includes('input swipe 540 648 540 1800 500')));
+  const inputCalls = calls.filter((args) => args.includes('input'));
+  assert.deepEqual(inputCalls, [[
+    '-s',
+    'emulator-5554',
+    'shell',
+    'input',
+    'tap',
+    '108',
+    '2280',
+  ]]);
 });
 
 test('ADB client requires an explicit serial when multiple devices are online', async () => {

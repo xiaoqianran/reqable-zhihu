@@ -1,6 +1,6 @@
 {
   "name": "reqable-zhihu",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Experimental mobile OpenCLI adapters and Reqable normalizers for Zhihu",
   "opencli": ">=1.8.6"
 }

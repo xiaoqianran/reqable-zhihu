@@ -172,28 +172,6 @@ export class AdbClient {
     await this.delay(800);
     const { width, height } = await this.screenSize();
     await this.input('tap', rounded(width * 0.10), rounded(height * 0.95));
-    await this.delay(450);
-    await this.input('tap', rounded(width * 0.375), rounded(height * 0.097));
-    await this.delay(350);
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      await this.input(
-        'swipe',
-        rounded(width * 0.50),
-        rounded(height * 0.27),
-        rounded(width * 0.50),
-        rounded(height * 0.83),
-        '250',
-      );
-      await this.delay(150);
-    }
-    await this.input(
-      'swipe',
-      rounded(width * 0.50),
-      rounded(height * 0.27),
-      rounded(width * 0.50),
-      rounded(height * 0.75),
-      '500',
-    );
   }
 
   async openAnswer(answerId) {
