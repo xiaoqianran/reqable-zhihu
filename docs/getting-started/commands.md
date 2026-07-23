@@ -187,7 +187,38 @@ opencli zhihu-mobile answer-detail 23109591027 `
 
 `--max-content 0` 表示不截断；最大允许值为 `1000000`。
 
-## 6. 推荐后读取第一条回答
+## 6. 展开推荐中的全部回答
+
+组合命令先获取一批推荐卡片，再把其中每个 `answer` 按推荐顺序交给详情读取：
+
+```powershell
+# 默认完整正文，逐篇直接显示
+opencli zhihu-mobile recommend-answers --limit 5
+
+# 返回结构化 JSON 数组
+opencli zhihu-mobile recommend-answers --limit 5 -f json
+
+# 每篇最多显示 2000 字
+opencli zhihu-mobile recommend-answers `
+  --limit 5 `
+  --max-content 2000
+```
+
+参数：
+
+| 参数 | 默认值 | 说明 |
+|------|--------|------|
+| `--source` | `auto` | `auto / adb / remote / capture / fixture` |
+| `--limit` | `5` | 本轮检查 `1-20` 张推荐卡片 |
+| `--max-content` | `0` | 每篇正文最大字符数；`0` 为完整正文 |
+| `--wait-seconds` | `20` | 等待每次 App 响应 `1-120` 秒 |
+| `--adb-path` | `adb` | ADB 可执行文件 |
+| `--adb-serial` | 空 | 多设备时必须指定 |
+| `--reqable-url` | `http://127.0.0.1:9000` | Reqable live API |
+
+操作同一个 Android App 时不能并行打开多个回答，因此该命令严格串行执行。实际耗时随回答数量增加。专栏 `article` 和问题 `question` 不属于 `answer-detail` 的输入，会被明确排除；如果本批没有回答，命令返回 `EMPTY_RESULT`。
+
+## 7. 手动读取推荐中的第一条回答
 
 ```powershell
 $recommendJson = opencli zhihu-mobile recommend --limit 2 -f json
@@ -205,7 +236,9 @@ opencli zhihu-mobile answer-detail $answerId `
 推荐结果可能包含文章或问题。生产脚本应先检查 `type -eq "answer"`，再调用
 `answer-detail`。
 
-## 7. 离线 fixture
+日常使用优先选择 `recommend-answers`；下面的 PowerShell 片段适合需要自定义筛选逻辑的脚本。
+
+## 8. 离线 fixture
 
 fixture 是合成、脱敏数据，只用于开发和离线验证：
 
@@ -218,9 +251,14 @@ opencli zhihu-mobile recommend `
 opencli zhihu-mobile answer-detail 900000000000000001 `
   --source fixture `
   -f json
+
+opencli zhihu-mobile recommend-answers `
+  --source fixture `
+  --limit 2 `
+  -f json
 ```
 
-## 8. Reqable 导出文件
+## 9. Reqable 导出文件
 
 读取推荐记录：
 
@@ -241,7 +279,7 @@ opencli zhihu-mobile answer-detail 23109591027 `
   -f json
 ```
 
-## 9. 旧版 Chrome 远程兼容源
+## 10. 旧版 Chrome 远程兼容源
 
 在第一个 PowerShell 窗口启动网关：
 
@@ -273,7 +311,7 @@ opencli zhihu-mobile recommend --source remote --limit 10
 `remote` 需要电脑 Chrome、OpenCLI Browser Bridge 和知乎登录态。默认
 `auto/adb` 不需要 Chrome。
 
-## 10. 输出格式
+## 11. 输出格式
 
 所有命令支持：
 
@@ -292,11 +330,12 @@ csv
 opencli zhihu-mobile recommend --limit 5 -f table
 opencli zhihu-mobile recommend --limit 5 -f json
 opencli zhihu-mobile answer-detail 23109591027 -f plain
+opencli zhihu-mobile recommend-answers --limit 5 -f json
 ```
 
 Agent 或脚本通常应显式使用 `-f json`。
 
-## 11. Trace 与调试
+## 12. Trace 与调试
 
 ```powershell
 # 详细日志
@@ -311,6 +350,10 @@ opencli zhihu-mobile recommend --trace retain-on-failure
 opencli zhihu-mobile answer-detail 23109591027 `
   --trace retain-on-failure `
   -v
+
+opencli zhihu-mobile recommend-answers --limit 3 `
+  --trace retain-on-failure `
+  -v
 ```
 
 Trace 模式：
@@ -321,7 +364,7 @@ Trace 模式：
 | `on` | 始终保存 |
 | `retain-on-failure` | 失败时保存 |
 
-## 12. 环境变量
+## 13. 环境变量
 
 ```powershell
 $env:ZHIHU_MOBILE_SOURCE = "adb"
@@ -337,17 +380,19 @@ $env:ZHIHU_MOBILE_GATEWAY_TOKEN = "<gateway-token>"
 
 命令行参数优先于环境变量。
 
-## 13. 帮助与验证
+## 14. 帮助与验证
 
 ```powershell
 opencli zhihu-mobile --help
 opencli zhihu-mobile doctor --help
 opencli zhihu-mobile recommend --help
 opencli zhihu-mobile answer-detail --help
+opencli zhihu-mobile recommend-answers --help
 
 opencli validate zhihu-mobile
 opencli verify zhihu-mobile/recommend
 opencli verify zhihu-mobile/answer-detail
+opencli verify zhihu-mobile/recommend-answers
 ```
 
 日常最短流程：
@@ -356,4 +401,5 @@ opencli verify zhihu-mobile/answer-detail
 opencli zhihu-mobile doctor --probe
 opencli zhihu-mobile recommend --limit 2
 opencli zhihu-mobile answer-detail 23109591027
+opencli zhihu-mobile recommend-answers --limit 5
 ```

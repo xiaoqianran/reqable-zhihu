@@ -15,6 +15,7 @@
 | `opencli zhihu-mobile doctor --probe` | 检查 ADB、知乎 App 和 Reqable |
 | `opencli zhihu-mobile recommend --limit 2` | 获取真实首页推荐 |
 | `opencli zhihu-mobile answer-detail <回答ID>` | 获取回答正文 |
+| `opencli zhihu-mobile recommend-answers --limit 5` | 展开一批推荐中的全部回答正文 |
 
 `search`、`hot` 等命令尚未实现。项目是非官方实验，不保证知乎内部协议长期稳定。
 
@@ -66,6 +67,18 @@ opencli zhihu-mobile recommend --limit 2
 opencli zhihu-mobile answer-detail 23109591027 --max-content 2000
 ```
 
+直接展开一批推荐中的所有回答：
+
+```powershell
+# 默认完整正文，适合直接阅读
+opencli zhihu-mobile recommend-answers --limit 5
+
+# 脚本或 Agent 使用结构化数组
+opencli zhihu-mobile recommend-answers --limit 5 -f json
+```
+
+组合命令严格串行操作知乎 App。`--limit` 是本轮检查的推荐卡片数，专栏和问题卡片会被排除，只展开可交给 `answer-detail` 的回答。
+
 推荐命令现在只执行一次底部“首页”触发，不再叠加点击“推荐”或滑动。一次调用只有一轮显式 UI 刷新；知乎 App 仍可能在这一轮内自行预取多页 HTTP 响应。
 
 更新插件：
@@ -115,6 +128,12 @@ opencli zhihu-mobile answer-detail 23109591027 `
   --source adb `
   --max-content 0 `
   -f json
+
+opencli zhihu-mobile recommend-answers `
+  --source adb `
+  --limit 5 `
+  --max-content 0 `
+  -f json
 ```
 
 连接多台设备时必须传 `--adb-serial`。`--max-content 0` 表示不截断正文。
@@ -149,7 +168,7 @@ opencli plugin uninstall reqable-zhihu
 opencli plugin install file://D:/path/to/reqable-zhihu
 ```
 
-同名 GitHub 版与本地版不能同时安装。命令入口保留在仓库根目录，具体实现位于 `src/providers`、`src/normalizers` 和 `src/runtime`。贡献前请阅读[开发指南](./docs/contributing/development.md)与 [Commit 规范](./docs/contributing/commits.md)。
+同名 GitHub 版与本地版不能同时安装。命令入口保留在仓库根目录，具体实现位于 `src/providers`、`src/normalizers`、`src/workflows` 和 `src/runtime`。贡献前请阅读[开发指南](./docs/contributing/development.md)与 [Commit 规范](./docs/contributing/commits.md)。
 
 ## 安全边界
 

@@ -58,3 +58,7 @@ Evidence:
 - replay result: synthetic fixture 覆盖推荐和回答正文两类响应。
 
 Capture provider 不发起知乎请求，因此不是签名绕过方案。
+
+## 组合读取路径
+
+`recommend-answers` 不引入新的数据策略。它串行复用推荐与回答详情两段 `INTERCEPT`，只把 `type=answer` 的推荐 URL 传入现有 `parseAnswerTarget` / `readAnswer` 契约。专栏和问题卡片不做隐式类型转换；批次没有回答时返回 typed empty error。

@@ -22,7 +22,7 @@
                        ▼
 ┌────────────────────────────────────────────┐
 │ OpenCLI plugin command layer               │
-│ recommend / answer-detail / doctor         │
+│ recommend / answer-detail / recommend-answers / doctor │
 └──────────────────────┬─────────────────────┘
                        │ normalized provider API
           ┌────────────┼──────────────┬─────────────┐
@@ -71,6 +71,21 @@
 - 回答正文：`id/author/votes/comments/questionId/questionTitle/url/createdAt/updatedAt/content/source`
 
 所有 ID 保持字符串，避免超过 JavaScript 安全整数范围。
+
+### Workflow 层
+
+`src/workflows/` 组合已经稳定的命令能力，不重新实现 provider：
+
+```text
+recommend-answers
+  → readRecommend(limit)
+  → filter type=answer
+  → parseAnswerTarget(url)
+  → sequential readAnswer(target)
+  → rank + answer detail rows
+```
+
+组合流程严格串行，因为多个详情不能同时驱动同一个 Android App。任何详情失败都使用 typed error 终止，不返回真假混合的 sentinel row。
 
 ## 命名空间
 

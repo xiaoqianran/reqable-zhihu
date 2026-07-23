@@ -7,7 +7,7 @@
 状态：已交付
 
 - GitHub 可安装的 OpenCLI 插件与 `zhihu-mobile` 命名空间。
-- `doctor`、`recommend`、`answer-detail` 三个稳定命令入口。
+- `doctor`、`recommend`、`answer-detail` 和 `recommend-answers` 命令入口。
 - `auto` 默认使用 ADB + Reqable，不依赖 Chrome。
 - App 自己生成登录态和动态签名，插件只读取本次新增响应。
 - 推荐只执行一次自然刷新，避免重复 UI 动作。
