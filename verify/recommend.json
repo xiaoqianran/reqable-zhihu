@@ -1,0 +1,29 @@
+{
+  "args": {
+    "source": "fixture",
+    "limit": 2
+  },
+  "expect": {
+    "rowCount": {
+      "min": 1,
+      "max": 2
+    },
+    "columns": [
+      "rank",
+      "type",
+      "title",
+      "author",
+      "votes",
+      "url",
+      "source"
+    ],
+    "patterns": {
+      "url": "^https://(www|zhuanlan)\\.zhihu\\.com/",
+      "source": "^fixture$"
+    },
+    "notEmpty": [
+      "title",
+      "url"
+    ]
+  }
+}

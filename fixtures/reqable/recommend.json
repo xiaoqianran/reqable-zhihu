@@ -1,0 +1,13 @@
+{
+  "id": 9001,
+  "url": "https://api.zhihu.com/topstory/recommend?action=down&limit=3",
+  "request": {
+    "method": "GET"
+  },
+  "response": {
+    "code": 200,
+    "body": {
+      "text": "{\"data\":[{\"id\":\"feed-1\",\"type\":\"ComponentCard\",\"extra\":{\"content_id\":\"900000000000000001\",\"content_type\":\"answer\",\"business_ext_map\":{\"passthrough_info\":{\"author\":{\"name\":\"示例作者甲\"},\"content\":{\"title\":\"如何设计一个可维护的移动命令行？\"},\"reactions\":{\"vote\":{\"count\":128}}}}},\"action\":{\"parameter\":\"route_url=https%3A%2F%2Fwww.zhihu.com%2Fquestion%2F800000000000000001%2Fanswer%2F900000000000000001\"}},{\"id\":\"feed-2\",\"target\":{\"id\":\"700000000000000001\",\"type\":\"article\",\"title\":\"离线优先的数据同步实践\",\"author\":{\"name\":\"示例作者乙\"},\"voteup_count\":64}},{\"id\":\"noise\"}],\"paging\":{\"is_end\":false,\"next\":\"https://api.zhihu.com/topstory/recommend?action=down&page_number=2\"}}"
+    }
+  }
+}

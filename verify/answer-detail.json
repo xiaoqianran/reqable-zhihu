@@ -1,0 +1,36 @@
+{
+  "args": [
+    "900000000000000001",
+    "--source",
+    "fixture"
+  ],
+  "expect": {
+    "rowCount": {
+      "min": 1,
+      "max": 1
+    },
+    "columns": [
+      "id",
+      "author",
+      "votes",
+      "comments",
+      "questionId",
+      "questionTitle",
+      "url",
+      "createdAt",
+      "updatedAt",
+      "content",
+      "source"
+    ],
+    "patterns": {
+      "id": "^\\d+$",
+      "url": "^https://www\\.zhihu\\.com/question/\\d+/answer/\\d+$",
+      "source": "^fixture$"
+    },
+    "notEmpty": [
+      "questionTitle",
+      "content",
+      "url"
+    ]
+  }
+}

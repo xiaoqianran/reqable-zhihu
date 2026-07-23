@@ -1,0 +1,13 @@
+{
+  "id": 9002,
+  "url": "https://page-info.zhihu.com/answers/v2/900000000000000001?source=feed",
+  "request": {
+    "method": "GET"
+  },
+  "response": {
+    "code": 200,
+    "body": {
+      "text": "{\"id\":\"900000000000000001\",\"type\":\"answer\",\"author\":{\"fullname\":\"示例作者甲\"},\"header\":{\"text\":\"如何设计一个可维护的移动命令行？\",\"action_url\":\"https://www.zhihu.com/question/800000000000000001\"},\"question\":{\"id\":\"800000000000000001\",\"title\":\"如何设计一个可维护的移动命令行？\"},\"voteup_count\":128,\"comment_count\":12,\"created_time\":1767225600,\"updated_time\":1767312000,\"structured_content\":{\"segments\":[{\"id\":\"0\",\"type\":\"heading\",\"heading\":{\"level\":2,\"text\":\"先稳定命令契约\"}},{\"id\":\"1\",\"type\":\"paragraph\",\"paragraph\":{\"text\":\"移动端与桌面端可以使用不同执行器，但应该返回相同的数据结构。\"}},{\"id\":\"2\",\"type\":\"list_node\",\"list_node\":{\"items\":[{\"text\":\"命令层只负责参数和输出\"},{\"text\":\"Provider 负责数据来源\"}]}},{\"id\":\"3\",\"type\":\"image\",\"image\":{\"urls\":[\"https://picx.zhimg.com/example.jpg\"]}}]}}"
+    }
+  }
+}

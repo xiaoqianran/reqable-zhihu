@@ -19,3 +19,10 @@ __pycache__/
 *.pyc
 .venv/
 node_modules/
+coverage/
+.opencli/
+
+# Runtime-only mobile/OpenCLI state
+.gateway-token
+capture-exports/
+runtime-data/
