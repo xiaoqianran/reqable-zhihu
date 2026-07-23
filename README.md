@@ -33,6 +33,9 @@ opencli zhihu-mobile doctor --probe
 安装完成后可以在任意目录调用插件。当前可用命令只有
 `doctor`、`recommend` 和 `answer-detail`；`search` 尚未实现。
 
+所有安装、配置、参数、数据源、输出格式和调试命令见
+[完整调用命令](./docs/commands.md)。
+
 连接 Android 和 Reqable 后，默认 `auto` 就是真实手机来源：
 
 ```powershell
@@ -138,6 +141,7 @@ zhihu-mobile 命令层
 详细说明：
 
 - [总体架构](./docs/architecture.md)
+- [完整调用命令](./docs/commands.md)
 - [Strategy 选择记录](./docs/strategy-note.md)
 - [运行与安全模型](./docs/runtime.md)
 - [演进路线](./docs/roadmap.md)
