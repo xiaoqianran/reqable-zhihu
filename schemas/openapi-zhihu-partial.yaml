@@ -1,0 +1,249 @@
+openapi: 3.0.3
+info:
+  title: Zhihu Android App API (Partial, Unofficial)
+  description: |
+    Reverse-engineered from Zhihu Android App ~10.103.x traffic via Reqable MITM.
+    NOT an official API. Incomplete and subject to change without notice.
+    Authentication and x-zse-* signing are required for most endpoints.
+  version: 0.1.0
+  license:
+    name: MIT
+
+servers:
+  - url: https://api.zhihu.com
+    description: Primary business API
+  - url: https://page-info.zhihu.com
+    description: Structured page / answer content
+  - url: https://appcloud2.zhihu.com
+    description: Remote config
+
+tags:
+  - name: feed
+  - name: content
+  - name: user
+  - name: infra
+
+paths:
+  /topstory/recommend:
+    get:
+      tags: [feed]
+      summary: Home recommendation feed
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: action
+          in: query
+          schema: { type: string, example: down }
+        - name: page_number
+          in: query
+          schema: { type: integer }
+        - name: after_id
+          in: query
+          schema: { type: string }
+        - name: end_offset
+          in: query
+          schema: { type: integer }
+        - name: session_token
+          in: query
+          schema: { type: string }
+        - name: start_type
+          in: query
+          schema: { type: string, enum: [cold, warm] }
+        - name: limit
+          in: query
+          schema: { type: integer, example: 10 }
+        - name: device
+          in: query
+          schema: { type: string, example: phone }
+        - name: refresh_scene
+          in: query
+          schema: { type: integer }
+        - name: is_feed_first_request
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Feed cards JSON
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { type: object }
+                  paging:
+                    type: object
+                  feed_request_id:
+                    type: string
+
+  /topstory/hot-lists/total:
+    get:
+      tags: [feed]
+      summary: Hot list (热榜)
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: limit
+          in: query
+          schema: { type: integer, example: 10 }
+        - name: is_browse_model
+          in: query
+          schema: { type: integer, example: 0 }
+        - name: new_hot_list
+          in: query
+          schema: { type: boolean, example: false }
+      responses:
+        '200':
+          description: Hot list items
+
+  /moments/tab_v2:
+    get:
+      tags: [feed]
+      summary: Moments / follow tab badge
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: ab_param
+          in: query
+          schema: { type: string, example: only_dynamic }
+        - name: feed_type
+          in: query
+          schema: { type: string, example: recommend }
+        - name: update_time
+          in: query
+          schema: { type: integer, example: 0 }
+      responses:
+        '200':
+          description: Unread counts etc.
+
+  /answers/v2/{answer_token}:
+    servers:
+      - url: https://page-info.zhihu.com
+    get:
+      tags: [content]
+      summary: Answer detail with structured content
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+        - name: answer_token
+          in: path
+          required: true
+          schema: { type: string }
+        - name: source
+          in: query
+          schema: { type: string, example: feed }
+      responses:
+        '200':
+          description: Answer body segments, author, question, reactions
+
+  /people/self:
+    get:
+      tags: [user]
+      summary: Current logged-in user profile
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Profile JSON
+
+  /people/homepage_mine_icon:
+    get:
+      tags: [user]
+      summary: Mine tab icon config
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      responses:
+        '200':
+          description: Icon metadata
+
+  /usertask-core/action/use_app:
+    post:
+      tags: [user]
+      summary: Report app usage / task action
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                action_time: { type: integer }
+                extra:
+                  type: object
+                  properties:
+                    duration: { type: integer }
+      responses:
+        '200':
+          description: '{ "success": true }'
+
+  /ab/api/v1/products/zhihu/platforms/android/config:
+    post:
+      tags: [infra]
+      summary: AB experiment config (protobuf body)
+      parameters:
+        - $ref: '#/components/parameters/Authorization'
+      requestBody:
+        content:
+          application/x-protobuf:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: AB chain config JSON
+
+  /check_health:
+    get:
+      tags: [infra]
+      summary: Health / heartbeat
+      responses:
+        '200':
+          description: Plain text like ~zhi
+
+  /v3/config:
+    servers:
+      - url: https://appcloud2.zhihu.com
+    get:
+      tags: [infra]
+      summary: App remote config
+      parameters:
+        - name: x-app-key
+          in: header
+          schema: { type: string }
+        - name: x-req-ts
+          in: header
+          schema: { type: string }
+        - name: x-req-signature
+          in: header
+          schema: { type: string }
+      responses:
+        '200':
+          description: Large config JSON
+
+components:
+  parameters:
+    Authorization:
+      name: Authorization
+      in: header
+      required: true
+      description: Bearer access token from logged-in session
+      schema:
+        type: string
+        example: Bearer <token>
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+  schemas:
+    CommonZhihuHeaders:
+      type: object
+      description: Typical Android app headers (see docs/02-auth-headers.md)
+      properties:
+        Authorization: { type: string }
+        Cookie: { type: string }
+        x-udid: { type: string }
+        x-app-version: { type: string }
+        x-api-version: { type: string }
+        x-zse-93: { type: string }
+        x-zse-96: { type: string }
+        x-zst-81: { type: string }
+        x-zst-82: { type: string }
+        User-Agent: { type: string }
