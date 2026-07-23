@@ -1,4 +1,4 @@
-# 开发指南
+# 项目开发指南
 
 ## 环境
 
@@ -22,7 +22,7 @@ opencli zhihu-mobile recommend --limit 2 -f json
 ## 新命令规则
 
 1. 根目录增加一个 command entry。
-2. 先在 `docs/strategy-note.md` 增加 strategy 证据。
+2. 先在 `docs/design/strategy.md` 增加 strategy 证据。
 3. 解析实现放到 `src/`。
 4. columns 使用 camelCase，≤ 15 列。
 5. 参数越界明确抛 `ArgumentError`，不得 silent clamp。

@@ -1,4 +1,4 @@
-# 总览：从抓包到接口地图
+# 知乎 Android 协议研究总览
 
 ## 研究背景
 
@@ -25,7 +25,7 @@
 
 ### 故意不承诺的
 
-- **完整 x-zse-96 算法实现**（随版本变更，见 [02-auth-headers](./02-auth-headers.md) 与推荐项目）  
+- **完整 x-zse-96 算法实现**（随版本变更，见 [鉴权与公共请求头](./authentication.md) 与推荐项目）  
 - 覆盖知乎 **全部** 业务线（直播、盐选、私信、搜索全量等需继续抓包补充）  
 - 任何生产环境滥用、绕过风控或未授权数据获取  
 
@@ -52,22 +52,22 @@
 
 | 文档 | 内容 |
 |------|------|
-| [01-domains](./01-domains.md) | 域名与基础设施 |
-| [02-auth-headers](./02-auth-headers.md) | 鉴权与签名头 |
-| [03-apis-feed](./03-apis-feed.md) | 推荐流 / 热榜 / 动态 |
-| [04-apis-content](./04-apis-content.md) | 回答 / 问题详情 |
-| [05-apis-user](./05-apis-user.md) | 用户与任务 |
-| [06-apis-infra](./06-apis-infra.md) | 配置 / 健康检查 / DNS / 埋点 |
-| [07-capture-setup](./07-capture-setup.md) | Reqable + 模拟器抓包复现 |
-| [08-related-projects](./08-related-projects.md) | 相关开源项目推荐 |
-| [../schemas/openapi-zhihu-partial.yaml](../schemas/openapi-zhihu-partial.yaml) | 部分 OpenAPI 草图 |
+| [域名与基础设施](./domains.md) | 域名与基础设施 |
+| [鉴权与公共请求头](./authentication.md) | 鉴权与签名头 |
+| [信息流协议](./feed.md) | 推荐流 / 热榜 / 动态 |
+| [内容协议](./content.md) | 回答 / 问题详情 |
+| [用户与任务协议](./user.md) | 用户与任务 |
+| [基础设施协议](./infrastructure.md) | 配置 / 健康检查 / DNS / 埋点 |
+| [Android 与 Reqable](../getting-started/android-reqable.md) | Reqable + 模拟器抓包复现 |
+| [相关项目](../contributing/related-projects.md) | 相关开源项目推荐 |
+| [openapi-zhihu-partial.yaml](../../schemas/openapi-zhihu-partial.yaml) | 部分 OpenAPI 草图 |
 
 ## 复现一条请求的最短路径
 
 1. 用 Reqable 抓到目标接口。  
 2. 导出 **脱敏** cURL（去掉真实 Cookie / Bearer）。  
 3. 对照本仓库对应章节核对 path 与 query。  
-4. 若需自动签名，参考 [08-related-projects](./08-related-projects.md) 中的签名向项目，而不是硬编码抓包值。  
+4. 若需自动签名，参考[相关项目](../contributing/related-projects.md)中的签名向项目，而不是硬编码抓包值。  
 
 ## 版本记录
 

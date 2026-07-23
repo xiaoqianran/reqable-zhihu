@@ -1,4 +1,4 @@
-# 完整调用命令
+# 命令手册
 
 本文以 PowerShell 为主，覆盖插件安装、ADB + Reqable 配置、全部
 `zhihu-mobile` 命令、数据源、输出格式、环境变量和调试方式。

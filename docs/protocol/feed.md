@@ -1,4 +1,4 @@
-# 信息流接口：推荐 / 热榜 / 动态
+# 信息流协议：推荐 / 热榜 / 动态
 
 ## 1. 首页推荐流
 
@@ -109,7 +109,7 @@ GET /topstory/recommend?action=down&ad_interval=3&after_id=5&end_offset=6&page_n
 
 1. 读 `extra.content_id` / `content_type`（多为 `answer`）。  
 2. 或解析 `action.parameter` 里的 `route_url`。  
-3. 详情正文走 **page-info**，见 [04-apis-content](./04-apis-content.md)。
+3. 详情正文走 **page-info**，见[内容协议](./content.md)。
 
 ---
 

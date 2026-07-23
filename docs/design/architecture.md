@@ -1,4 +1,4 @@
-# 手机知乎 OpenCLI 总体架构
+# 手机知乎 OpenCLI 架构
 
 ## 目标
 
@@ -51,7 +51,7 @@
 
 ```js
 {
-  source: "remote" | "capture" | "fixture",
+  source: "adb" | "remote" | "capture" | "fixture",
   rows: []
 }
 ```
@@ -107,7 +107,7 @@ Reqable export
 
 ```text
 snapshot matching capture IDs
-  → ADB launch/tap/swipe or zhihu://answers/<id>
+  → ADB launch + one Home tap, or zhihu://answers/<id>
   → poll matching Reqable IDs
   → require new ID + adb process + 2xx + JSON
   → normalize App payload

@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process';
-import { readdir, readFile } from 'node:fs/promises';
-import { extname, join, relative, resolve } from 'node:path';
+import { access, readdir, readFile } from 'node:fs/promises';
+import { dirname, extname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -28,6 +28,24 @@ for (const file of files.filter((path) => ['.js', '.mjs'].includes(extname(path)
 
 for (const file of files.filter((path) => extname(path) === '.json')) {
   JSON.parse(await readFile(file, 'utf8'));
+}
+
+for (const file of files.filter((path) => extname(path) === '.md')) {
+  const text = await readFile(file, 'utf8');
+  const links = text.matchAll(/\[[^\]]*]\(([^)]+)\)/g);
+  for (const [, rawTarget] of links) {
+    const target = rawTarget.trim().replace(/^<|>$/g, '');
+    if (!target || target.startsWith('#') || /^[a-z][a-z+.-]*:/i.test(target)) continue;
+    const localPath = target.split(/[?#]/, 1)[0];
+    if (!localPath) continue;
+    try {
+      await access(resolve(dirname(file), decodeURIComponent(localPath)));
+    } catch {
+      throw new Error(
+        `Broken local Markdown link in ${relative(root, file)}: ${rawTarget}`,
+      );
+    }
+  }
 }
 
 for (const file of files.filter((path) => path.includes(`${join('fixtures', '')}`))) {

@@ -1,4 +1,4 @@
-# 相关开源项目推荐
+# 相关项目与参考实现
 
 下列项目与本仓库互补：**签名实现、历史 API 封装、热榜归档、抓包转 OpenAPI、Reqable 生态** 等。  
 星标与活跃度会变化，请以 GitHub 页面为准。收录仅为导航，不代表背书或可合法商用。
@@ -38,7 +38,7 @@
 
 适合做 **公开趋势分析 / 数据集**，与 App 推荐流（`/topstory/recommend`）数据源不同，但同属「知乎公开信息」研究。
 
-本仓库热榜接口：`GET /topstory/hot-lists/total`（见 [03-apis-feed](./03-apis-feed.md)）。
+本仓库热榜接口：`GET /topstory/hot-lists/total`（见[信息流协议](../protocol/feed.md)）。
 
 ---
 
@@ -55,7 +55,7 @@
 Reqable 导出 HAR → mitmproxy2swagger / 手工整理 → 合并进本仓库 schemas/
 ```
 
-本仓库已提供手工维护的 [openapi-zhihu-partial.yaml](../schemas/openapi-zhihu-partial.yaml)。
+本仓库已提供手工维护的 [openapi-zhihu-partial.yaml](../../schemas/openapi-zhihu-partial.yaml)。
 
 ---
 
@@ -96,7 +96,7 @@ Reqable 导出 HAR → mitmproxy2swagger / 手工整理 → 合并进本仓库 s
 ## 八、推荐学习路径
 
 ```text
-1. 本仓库 docs/*          → 知道 App 打了哪些 URL
+1. 本仓库 docs/protocol/* → 知道 App 打了哪些 URL
 2. Reqable + MCP          → 自己复现、扩展接口表
 3. ZhihuApis / 签名笔记   → 解决 x-zse-96 复打
 4. mitmproxy2swagger      → 把新抓包变成 OpenAPI

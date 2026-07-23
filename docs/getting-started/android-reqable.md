@@ -1,4 +1,4 @@
-# 使用 Reqable 复现本仓库的抓包环境
+# 配置 Android 与 Reqable
 
 ## 架构
 
