@@ -36,7 +36,7 @@
 从 GitHub 安装：
 
 ```powershell
-opencli plugin install github:xiaoqianran/reqable-zhihu
+opencli plugin install github:xiaoqianran/opencli-reqable-zhihu
 opencli plugin list -f json
 ```
 
@@ -194,7 +194,7 @@ adb reverse --remove-all
 ## 开发
 
 ```powershell
-git clone https://github.com/xiaoqianran/reqable-zhihu.git
+git clone https://github.com/xiaoqianran/opencli-reqable-zhihu.git
 cd reqable-zhihu
 npm test
 npm run check

@@ -7,7 +7,7 @@
 
 ```powershell
 # 从 GitHub 安装
-opencli plugin install github:xiaoqianran/reqable-zhihu
+opencli plugin install github:xiaoqianran/opencli-reqable-zhihu
 
 # 更新到 GitHub 最新版本
 opencli plugin update reqable-zhihu
